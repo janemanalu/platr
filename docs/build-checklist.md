@@ -18,13 +18,10 @@ Living list of what's done and what's left. Updated as the build progresses.
       `Stack.Protected` session gate. All screens are stubs (`ScreenStub`) wired
       with their real routes.
 
-## Next
-
-- [ ] Screen 1 — **Home**, replacing the stub
-
 ## Screens to build (from Figma, in order)
 
-- [ ] Home (`13:9`, `13:1207`)
+- [x] Home (`13:9`, `13:1207`) — header, greeting, streak, food map, Tastes Like
+      You / Trending carousels, Wishlist. Placeholder data (`src/lib/placeholder.ts`).
 - [ ] Discovery — list (`13:2142`), map (`13:1807`), filters
 - [ ] Restaurant Detail (`13:7914`)
 - [ ] Log a Visit (`13:2948`, `13:3829`) — incl. RatingSlider component
@@ -45,8 +42,11 @@ Living list of what's done and what's left. Updated as the build progresses.
 
 ## Backend follow-ups
 
+- [ ] Turn OFF "Confirm email" in Supabase dashboard for dev (Authentication →
+      Sign In / Providers → Email) so sign-up logs you straight in
 - [ ] `0006_dev_seed.sql` — sample restaurants/users/reviews (wireframe names) for
       building against
+- [ ] Replace `src/lib/placeholder.ts` with real Supabase queries per screen
 - [ ] Data hooks layer (`src/hooks` / queries) per screen
 - [ ] Streak wired to `current_streak()` RPC
 - [ ] `restaurant_scores` / `restaurant_tags_view` wired into Home + Detail

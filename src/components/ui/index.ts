@@ -12,3 +12,9 @@ export type { ChipProps } from './Chip';
 
 export { Screen } from './Screen';
 export type { ScreenProps } from './Screen';
+
+export { Thumbnail } from './Thumbnail';
+export type { ThumbnailProps } from './Thumbnail';
+
+export { SectionHeader } from './SectionHeader';
+export type { SectionHeaderProps } from './SectionHeader';
