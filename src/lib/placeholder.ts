@@ -104,11 +104,22 @@ export const discovery = {
   ],
 };
 
+export type ReviewEntry = { text: string; by: string; score?: number };
+
+export type ReviewCategory = {
+  key: 'food' | 'vibe' | 'tales';
+  label: string;
+  /** Average of this category's 0–10 ratings. Undefined for Tales (not a rated dimension). */
+  score?: number;
+  count: number;
+  entries: ReviewEntry[];
+};
+
 export type RestaurantDetail = PlaceholderRestaurant & {
   about: string;
   website_url: string;
   tagGroups: { label: string; tags: string[] }[];
-  reviews: { dimension: string; text: string; by: string }[];
+  reviews: ReviewCategory[];
 };
 
 const DETAILS: Record<string, RestaurantDetail> = {
@@ -125,9 +136,41 @@ const DETAILS: Record<string, RestaurantDetail> = {
       { label: 'Dietary', tags: ['Vegetarian options', 'Gluten-free available'] },
     ],
     reviews: [
-      { dimension: 'Food', text: 'What was ordered, dish highlights…', by: 'Jordan R.' },
-      { dimension: 'Vibe', text: 'Atmosphere, noise level, service…', by: 'Aisha K.' },
-      { dimension: 'Tales', text: 'Who they went with, occasion, the story…', by: 'Ravi M.' },
+      {
+        key: 'food',
+        label: 'Food',
+        score: 8.5,
+        count: 4,
+        entries: [
+          { text: 'Hand-rolled cavatelli with lamb ragù — best in the city. Order the focaccia.', by: 'Jordan R.', score: 9 },
+          { text: 'Burrata was creamy, pasta a touch under-seasoned but generous portions.', by: 'Aisha K.', score: 8 },
+          { text: 'Wood-fired branzino for two. Skin perfectly crisp.', by: 'Leo M.', score: 8.5 },
+          { text: 'Tiramisu is the move. Everything else solid, not spectacular.', by: 'Priya S.', score: 8 },
+        ],
+      },
+      {
+        key: 'vibe',
+        label: 'Vibe',
+        score: 7,
+        count: 3,
+        entries: [
+          { text: 'Dim, intimate, a little loud when full. Tables close together.', by: 'Aisha K.', score: 7 },
+          { text: 'Warm lighting, jazz on low. Service attentive without hovering.', by: 'Ravi M.', score: 7.5 },
+          { text: 'Cosy but cramped — not the spot for a big group.', by: 'Sofia A.', score: 6.5 },
+        ],
+      },
+      {
+        key: 'tales',
+        label: 'Tales',
+        count: 5,
+        entries: [
+          { text: 'Anniversary dinner. They comped a dessert when they heard.', by: 'Ravi M.' },
+          { text: 'Solo at the bar on a rainy Tuesday. Chef chatted between courses.', by: 'Mei W.' },
+          { text: 'Brought my parents — Dad still talks about the ragù.', by: 'Jordan R.' },
+          { text: 'First date. We stayed until they turned the lights up.', by: 'Leo M.' },
+          { text: 'Team lunch that ran three hours. Nobody wanted to leave.', by: 'Priya S.' },
+        ],
+      },
     ],
   },
 };
@@ -140,6 +183,10 @@ export function restaurantDetail(id: string): RestaurantDetail {
       ...(restaurants[id] ?? {}),
     }
   );
+}
+
+export function reviewCategory(restaurantId: string, key: string): ReviewCategory | undefined {
+  return restaurantDetail(restaurantId).reviews.find((r) => r.key === key);
 }
 
 /** Friends to tag on a log — anyone you follow. */

@@ -3,10 +3,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ReviewCategoryCard } from '@/components/restaurant/ReviewCategoryCard';
 import { TagGroup } from '@/components/restaurant/TagGroup';
 import { Button, Text, Thumbnail } from '@/components/ui';
 import { PRICE, restaurantDetail } from '@/lib/placeholder';
-import { borderWidth, colors, space } from '@/theme';
+import { colors, space } from '@/theme';
 
 export default function RestaurantDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -64,33 +65,29 @@ export default function RestaurantDetail() {
             ) : null}
           </Section>
 
-          <Section
-            label="Reviews"
-            action="See all reviews →"
-            onAction={() => router.push(`/list/${r.id}?variant=reviews`)}
-          >
+          <Section label="Reviews — you & friends">
             <View style={styles.reviews}>
               {r.reviews.map((rev) => (
-                <View key={rev.dimension} style={styles.review}>
-                  <Text variant="caption" color="textLabel" style={styles.reviewDim}>
-                    {rev.dimension}
-                  </Text>
-                  <Text variant="body" color="textDisabled">
-                    {rev.text}
-                  </Text>
-                  <Text variant="caption" color="textFaint">
-                    by {rev.by}
-                  </Text>
-                </View>
+                <ReviewCategoryCard
+                  key={rev.key}
+                  label={rev.label}
+                  score={rev.score}
+                  previewText={rev.entries[0]?.text ?? ''}
+                  by={rev.entries[0]?.by ?? ''}
+                  onSeeAll={() => router.push(`/reviews/${r.id}?category=${rev.key}`)}
+                />
               ))}
             </View>
           </Section>
+
+          <Button
+            label="+ LOG A VISIT"
+            fullWidth
+            onPress={() => router.push(`/log?restaurantId=${r.id}`)}
+            style={styles.cta}
+          />
         </View>
       </ScrollView>
-
-      <View style={styles.cta}>
-        <Button label="+ Log a Visit" fullWidth onPress={() => router.push(`/log?restaurantId=${r.id}`)} />
-      </View>
     </SafeAreaView>
   );
 }
@@ -140,14 +137,7 @@ const styles = StyleSheet.create({
 
   website: { alignSelf: 'flex-start', paddingVertical: space[1] },
 
-  reviews: { gap: space[4] },
-  review: { gap: space[1], borderLeftWidth: borderWidth, borderLeftColor: colors.border, paddingLeft: space[3] },
-  reviewDim: { textTransform: 'uppercase', letterSpacing: 0.6 },
+  reviews: { gap: space[3] },
 
-  cta: {
-    paddingHorizontal: space[4],
-    paddingTop: space[3],
-    borderTopWidth: borderWidth,
-    borderTopColor: colors.divider,
-  },
+  cta: { marginTop: space[6] },
 });

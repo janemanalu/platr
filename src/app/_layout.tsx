@@ -28,6 +28,7 @@ function RootNavigator() {
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="restaurant/[id]" />
+        <Stack.Screen name="reviews/[restaurantId]" />
         <Stack.Screen name="list/[id]" />
         <Stack.Screen name="user/[id]" />
         <Stack.Screen name="find-for-me" />

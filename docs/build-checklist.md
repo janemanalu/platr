@@ -24,8 +24,11 @@ Living list of what's done and what's left. Updated as the build progresses.
       You / Trending carousels, Wishlist. Placeholder data (`src/lib/placeholder.ts`).
 - [x] Discovery — list (`13:2142`) + map placeholder (`13:1807`), search, Map/List
       toggle, expandable filter chips, ✦ Find for me
-- [x] Restaurant Detail (`13:7914`) — banner, name + Log a Visit, tag groups,
-      About + website, review blocks, sticky + Log a Visit CTA
+- [x] Restaurant Detail (`13:7914`) — ONE continuous scroll: banner, name +
+      Log a Visit, cuisine/price/location, tag groups, About + website,
+      "Reviews — you & friends" (Food/Vibe/Tales cards: avg score /10, preview,
+      reviewer, per-card See all reviews → `/reviews/[restaurantId]?category=`),
+      full-width "+ LOG A VISIT" at the end
 - [x] Log a Visit (`13:2948`, `13:3829`) — restaurant search, Food/Vibe
       RatingSliders, notes, photo upload stub, status grid, friend tagging, tag
       picker, anon suggestion, Save Entry (form state only; no insert yet)
