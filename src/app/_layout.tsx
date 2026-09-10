@@ -18,7 +18,10 @@ function RootNavigator() {
     );
   }
 
-  const signedIn = !!session;
+  // Dev escape hatch: set EXPO_PUBLIC_DEV_SKIP_AUTH=1 in .env to walk the app
+  // without signing in. Never true in a release build.
+  const skipAuth = __DEV__ && process.env.EXPO_PUBLIC_DEV_SKIP_AUTH === '1';
+  const signedIn = !!session || skipAuth;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>

@@ -39,6 +39,7 @@ Living list of what's done and what's left. Updated as the build progresses.
 - [x] Profile bootstrap: `username` / `display_name` passed on sign-up (DB trigger creates profile)
 - [ ] Edit profile in Settings (Settings screen is stub + sign-out only)
 - [ ] Email-confirmation UX polish / resend
+- [ ] Remove the `EXPO_PUBLIC_DEV_SKIP_AUTH` escape hatch before any release build
 
 ## Backend follow-ups
 
