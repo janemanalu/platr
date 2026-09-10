@@ -18,3 +18,9 @@ export type { ThumbnailProps } from './Thumbnail';
 
 export { SectionHeader } from './SectionHeader';
 export type { SectionHeaderProps } from './SectionHeader';
+
+export { SearchField } from './SearchField';
+export type { SearchFieldProps } from './SearchField';
+
+export { SegmentedToggle } from './SegmentedToggle';
+export type { SegmentedToggleProps } from './SegmentedToggle';

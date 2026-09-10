@@ -1,4 +1,12 @@
-import { ActivityIndicator, Pressable, PressableProps, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  PressableProps,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 import { borderWidth, colors, radius, space } from '@/theme';
 
@@ -16,6 +24,8 @@ export type ButtonProps = Omit<PressableProps, 'children' | 'style'> & {
   /** Optional leading glyph/element (e.g. a "+"). Kept simple for the wireframe. */
   icon?: React.ReactNode;
   fullWidth?: boolean;
+  /** Extra container style (e.g. margins). */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -30,6 +40,7 @@ export function Button({
   loading = false,
   icon,
   fullWidth = false,
+  style,
   ...rest
 }: ButtonProps) {
   const isLink = variant === 'link';
@@ -57,6 +68,7 @@ export function Button({
         fullWidth && styles.fullWidth,
         disabled && !isLink && styles.disabled,
         pressed && styles.pressed,
+        style,
       ]}
       {...rest}
     >

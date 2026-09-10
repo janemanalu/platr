@@ -22,9 +22,13 @@ Living list of what's done and what's left. Updated as the build progresses.
 
 - [x] Home (`13:9`, `13:1207`) — header, greeting, streak, food map, Tastes Like
       You / Trending carousels, Wishlist. Placeholder data (`src/lib/placeholder.ts`).
-- [ ] Discovery — list (`13:2142`), map (`13:1807`), filters
-- [ ] Restaurant Detail (`13:7914`)
-- [ ] Log a Visit (`13:2948`, `13:3829`) — incl. RatingSlider component
+- [x] Discovery — list (`13:2142`) + map placeholder (`13:1807`), search, Map/List
+      toggle, expandable filter chips, ✦ Find for me
+- [x] Restaurant Detail (`13:7914`) — banner, name + Log a Visit, tag groups,
+      About + website, review blocks, sticky + Log a Visit CTA
+- [x] Log a Visit (`13:2948`, `13:3829`) — restaurant search, Food/Vibe
+      RatingSliders, notes, photo upload stub, status grid, friend tagging, tag
+      picker, anon suggestion, Save Entry (form state only; no insert yet)
 - [ ] Profile (`13:5811`, `13:6351`) + inline Create a List (`13:6892`)
 - [ ] Social Feed (`13:4270`, `13:4824`) + Post view overlay
 - [ ] Find for Me (`13:2611`)
@@ -72,5 +76,8 @@ Living list of what's done and what's left. Updated as the build progresses.
 
 - [ ] Visual design pass — brand color, custom fonts, real imagery, polish
 - [ ] Map rendering (real map SDK) for Home "Food Map" + Discovery map
+      (currently gray placeholder boxes with pins)
+- [ ] Log a Visit → actually insert log + review + children on Save
+- [ ] Restaurant search in Log a Visit / Discovery wired to real data
 - [ ] Photo upload pipeline to `review-photos` bucket
 - [ ] Push notifications, onboarding, empty states

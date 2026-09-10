@@ -83,3 +83,79 @@ export const home = {
 };
 
 export const PRICE = ['', '$', '$$', '$$$', '$$$$'] as const;
+
+/** Discovery — list + map. */
+export const discovery = {
+  areaLabel: 'SCBD area',
+  results: [
+    { ...restaurants.osteria, tags: ['Cozy', 'Date spot'] },
+    { ...restaurants.maebird, tags: ['Casual'] },
+    { ...restaurants.kato, tags: ['Intimate', 'Date spot'] },
+    { ...restaurants.ilis, tags: ['Fancy', 'Anniversary'] },
+    { ...restaurants.deptculture, tags: ['Adventurous'] },
+    { ...restaurants.bakmiekaret, tags: ['Quick Bite'] },
+  ],
+  filters: ['Open now', 'Wishlist', 'Cozy', 'Date spot', '$$ or less', 'Nearby'],
+  pins: [
+    { id: 'osteria', label: 'Osteria', x: '30%', y: '34%' },
+    { id: 'kato', label: 'Kato', x: '66%', y: '28%' },
+    { id: 'maebird', label: 'Mae Bird', x: '70%', y: '58%' },
+    { id: 'ilis', label: 'Ilis', x: '34%', y: '64%' },
+  ],
+};
+
+export type RestaurantDetail = PlaceholderRestaurant & {
+  about: string;
+  website_url: string;
+  tagGroups: { label: string; tags: string[] }[];
+  reviews: { dimension: string; text: string; by: string }[];
+};
+
+const DETAILS: Record<string, RestaurantDetail> = {
+  maebird: {
+    ...restaurants.maebird,
+    about:
+      'A neighbourhood Italian osteria known for hand-rolled pastas and a tight, seasonal menu. Intimate space — book ahead.',
+    website_url: 'https://example.com',
+    tagGroups: [
+      { label: 'Cuisine', tags: ['Italian', 'Pasta', 'Wood-fired'] },
+      { label: 'Occasion', tags: ['Date spot', 'Anniversary', 'Business lunch'] },
+      { label: 'Vibe', tags: ['Cozy', 'Dim lighting', 'Intimate'] },
+      { label: 'Price Point', tags: ['Mid-range', '$$'] },
+      { label: 'Dietary', tags: ['Vegetarian options', 'Gluten-free available'] },
+    ],
+    reviews: [
+      { dimension: 'Food', text: 'What was ordered, dish highlights…', by: 'Jordan R.' },
+      { dimension: 'Vibe', text: 'Atmosphere, noise level, service…', by: 'Aisha K.' },
+      { dimension: 'Tales', text: 'Who they went with, occasion, the story…', by: 'Ravi M.' },
+    ],
+  },
+};
+
+export function restaurantDetail(id: string): RestaurantDetail {
+  return (
+    DETAILS[id] ?? {
+      ...(restaurants[id] ?? restaurants.maebird),
+      ...DETAILS.maebird,
+      ...(restaurants[id] ?? {}),
+    }
+  );
+}
+
+/** Friends to tag on a log — anyone you follow. */
+export const friends = [
+  { id: 'aisha', name: 'Aisha Kurnia', username: 'aishak' },
+  { id: 'ravi', name: 'Ravi Mehta', username: 'ravim' },
+  { id: 'sofia', name: 'Sofia Alvarez', username: 'sofiaa' },
+  { id: 'leo', name: 'Leo Tanaka', username: 'leot' },
+  { id: 'mei', name: 'Mei Wong', username: 'meiw' },
+];
+
+/** Fixed tag vocabulary for the Log a Visit "Tags" picker (mirrors 0005_seed_tags). */
+export const tagOptions = [
+  'Italian', 'Pasta', 'Wood-fired', 'Southern', 'Taiwanese', 'New Nordic', 'Nigerian', 'Indonesian',
+  'Date spot', 'Anniversary', 'Business lunch', 'Solo', 'Group Hangout', 'Quick Bite', 'Celebration',
+  'Cozy', 'Dim lighting', 'Intimate', 'Adventurous', 'Familiar', 'Fancy', 'Casual',
+  'Budget', 'Mid-range', 'Splurge',
+  'Vegetarian options', 'Gluten-free available', 'Vegan options', 'Halal',
+];
