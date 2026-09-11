@@ -4,18 +4,23 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { borderWidth, colors, radius } from '@/theme';
 
-/** Center "+" in the tab bar — not a tab, opens the Log a Visit modal. */
+/**
+ * Center "+" in the tab bar — not a tab, opens the Log a Visit modal. Raised
+ * above the bar (a true floating action button) rather than sitting inline
+ * with the icon+label tabs: inline, its bare circle had no label to balance
+ * against its neighbors and read as an odd, cramped fifth tab.
+ */
 function LogFab() {
   const router = useRouter();
   return (
-    <View style={styles.fabSlot}>
+    <View style={styles.fabSlot} pointerEvents="box-none">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Log a visit"
         onPress={() => router.push('/log')}
         style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
       >
-        <Ionicons name="add" size={22} color={colors.textFaint} />
+        <Ionicons name="add" size={26} color={colors.textStrong} />
       </Pressable>
     </View>
   );
@@ -54,17 +59,17 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  fabSlot: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  fabSlot: { flex: 1, alignItems: 'center' },
   fab: {
-    width: 44,
-    height: 44,
+    width: 50,
+    height: 50,
     borderRadius: radius.pill,
     borderWidth: 1.5,
-    borderColor: colors.textFaint,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 2,
+    marginTop: -20,
   },
-  fabPressed: { opacity: 0.5 },
+  fabPressed: { opacity: 0.5, backgroundColor: colors.bgSubtle },
 });

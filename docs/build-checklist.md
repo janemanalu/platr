@@ -81,6 +81,25 @@ Living list of what's done and what's left. Updated as the build progresses.
 - [ ] Places lib — autocomplete + details → upsert `restaurants`
 - [ ] Restaurant search in Log a Visit + Discovery wired to Places
 
+## Fixes
+
+- [x] "The action 'GO_BACK' was not handled" — the root layout used to mount a
+      bare loading `View` (no `<Stack>` at all) until the auth check resolved,
+      so a cold deep link into a nested screen had no stable navigator to land
+      in. Now the `<Stack>` mounts immediately and the native splash screen
+      covers the brief `initializing` window instead (`expo-splash-screen`).
+      Also added `src/lib/nav.ts#goBack()` — checks `router.canGoBack()` before
+      popping, replacing every raw `router.back()` call in the app — so a
+      genuinely history-less back tap redirects to a sane fallback instead of
+      warning.
+- [x] Added a global `ErrorBoundary` (`src/components/system`) around the
+      navigator as a last-resort net for render-time errors.
+- [x] Tab bar "+" — raised into a proper floating action button above the bar
+      instead of sitting inline with the icon+label tabs (was reading as a
+      cramped, label-less fifth tab).
+- [x] Settings "Sign out" now surfaces errors and shows a loading state instead
+      of firing-and-forgetting the promise.
+
 ## Later passes (explicitly deferred)
 
 - [ ] Visual design pass — brand color, custom fonts, real imagery, polish

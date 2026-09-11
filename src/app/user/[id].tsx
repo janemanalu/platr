@@ -8,6 +8,7 @@ import { GalleryGrid } from '@/components/profile/GalleryGrid';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileListSection } from '@/components/profile/ProfileListSection';
 import { Button, Text } from '@/components/ui';
+import { goBack } from '@/lib/nav';
 import { gallery, otherUser } from '@/lib/placeholder';
 import { colors, space } from '@/theme';
 
@@ -19,7 +20,7 @@ export default function UserProfile() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={12}>
+      <Pressable onPress={() => goBack(router, '/social')} style={styles.back} hitSlop={12}>
         <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         <Text variant="small" color="textFaint">
           Social

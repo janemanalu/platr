@@ -1,28 +1,33 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ErrorBoundary } from '@/components/system/ErrorBoundary';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { colors } from '@/theme';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
   const { session, initializing } = useAuth();
 
-  if (initializing) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
-        <ActivityIndicator color={colors.textFaint} />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (!initializing) SplashScreen.hideAsync().catch(() => {});
+  }, [initializing]);
 
   // Dev escape hatch: set EXPO_PUBLIC_DEV_SKIP_AUTH=1 in .env to walk the app
   // without signing in. Never true in a release build.
   const skipAuth = __DEV__ && process.env.EXPO_PUBLIC_DEV_SKIP_AUTH === '1';
   const signedIn = !!session || skipAuth;
 
+  // The Stack (and its NavigationContainer) stays mounted from the very first
+  // render — including while `initializing` is still resolving — so a deep
+  // link opened cold has a single, stable navigator to land in instead of one
+  // that gets torn down and rebuilt once the session check finishes. The
+  // native splash screen (above) covers the screen for that brief window.
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Protected guard={signedIn}>
@@ -49,9 +54,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </ErrorBoundary>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

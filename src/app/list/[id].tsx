@@ -8,6 +8,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { RestaurantRow } from '@/components/restaurant/RestaurantRow';
 import { Card, Text } from '@/components/ui';
 import { gallery, listDetail, type ListVariant } from '@/lib/placeholder';
+import { goBack } from '@/lib/nav';
 import { colors, space } from '@/theme';
 
 export default function ListDetail() {
@@ -19,7 +20,7 @@ export default function ListDetail() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={12}>
+      <Pressable onPress={() => goBack(router, '/')} style={styles.back} hitSlop={12}>
         <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         <Text variant="small" color="textFaint">
           Back

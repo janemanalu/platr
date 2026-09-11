@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RatingSlider } from '@/components/log/RatingSlider';
 import { Button, Chip, SearchField, Text } from '@/components/ui';
+import { goBack } from '@/lib/nav';
 import { friends, restaurants, tagOptions } from '@/lib/placeholder';
 import { borderWidth, colors, fontFamily, space, type as typeScale } from '@/theme';
 import type { LogStatus } from '@/lib/database.types';
@@ -45,10 +46,10 @@ export default function LogAVisit() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.headerBtn}>
+        <Pressable onPress={() => goBack(router, '/')} hitSlop={12} style={styles.headerBtn}>
           <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         </Pressable>
-        <Text variant="sectionLabel" color="textBody">
+        <Text variant="title" color="textStrong">
           Log a Visit
         </Text>
         <View style={styles.headerBtn} />
@@ -184,7 +185,7 @@ export default function LogAVisit() {
             />
           </Field>
 
-          <Button label="Save Entry" fullWidth onPress={() => router.back()} style={styles.save} />
+          <Button label="Save Entry" fullWidth onPress={() => goBack(router, '/')} style={styles.save} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

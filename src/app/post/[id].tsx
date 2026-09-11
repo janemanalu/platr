@@ -5,6 +5,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text, Thumbnail } from '@/components/ui';
+import { goBack } from '@/lib/nav';
 import { social } from '@/lib/placeholder';
 import { borderWidth, colors, radius, space } from '@/theme';
 
@@ -17,7 +18,7 @@ export default function PostView() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
+        <Pressable onPress={() => goBack(router, '/social')} hitSlop={12}>
           <Ionicons name="close" size={20} color={colors.textFaint} />
         </Pressable>
         <Text variant="sectionLabel" color="textBody">

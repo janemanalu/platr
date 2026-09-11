@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Button, Card, Screen, Text } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { goBack } from '@/lib/nav';
 import { currentUser } from '@/lib/placeholder';
 import { supabase } from '@/lib/supabase';
 import { borderWidth, colors, space } from '@/theme';
@@ -18,10 +20,20 @@ const ROWS = [
 export default function Settings() {
   const router = useRouter();
   const { session } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    setError(null);
+    const { error } = await supabase.auth.signOut();
+    setSigningOut(false);
+    if (error) setError(error.message);
+  }
 
   return (
     <Screen scroll>
-      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={12}>
+      <Pressable onPress={() => goBack(router, '/')} style={styles.back} hitSlop={12}>
         <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         <Text variant="small" color="textFaint">
           Back
@@ -71,7 +83,12 @@ export default function Settings() {
           </Card>
         </View>
 
-        <Button label="Sign out" variant="secondary" fullWidth onPress={() => supabase.auth.signOut()} />
+        {error ? (
+          <Text variant="small" color="textBody">
+            {error}
+          </Text>
+        ) : null}
+        <Button label="Sign out" variant="secondary" fullWidth loading={signingOut} onPress={handleSignOut} />
       </View>
     </Screen>
   );

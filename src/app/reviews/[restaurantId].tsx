@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card, Text } from '@/components/ui';
 import { restaurantDetail, reviewCategory } from '@/lib/placeholder';
+import { goBack } from '@/lib/nav';
 import { colors, space } from '@/theme';
 
 /** Every review in one category (Food / Vibe / Tales) for a restaurant. */
@@ -16,7 +17,7 @@ export default function CategoryReviews() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={12}>
+      <Pressable onPress={() => goBack(router, `/restaurant/${restaurantId}`)} style={styles.back} hitSlop={12}>
         <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         <Text variant="small" color="textFaint">
           Back

@@ -7,6 +7,7 @@ import { ReviewCategoryCard } from '@/components/restaurant/ReviewCategoryCard';
 import { TagGroup } from '@/components/restaurant/TagGroup';
 import { Button, Text, Thumbnail } from '@/components/ui';
 import { PRICE, restaurantDetail } from '@/lib/placeholder';
+import { goBack } from '@/lib/nav';
 import { colors, space } from '@/theme';
 
 export default function RestaurantDetail() {
@@ -16,7 +17,7 @@ export default function RestaurantDetail() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={12}>
+      <Pressable onPress={() => goBack(router, '/discover')} style={styles.back} hitSlop={12}>
         <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         <Text variant="small" color="textFaint">
           Back
