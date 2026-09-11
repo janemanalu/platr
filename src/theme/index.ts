@@ -83,21 +83,31 @@ export const borderWidth = 1;
 const systemFont = Platform.select({ ios: 'System', android: 'sans-serif', default: 'System' });
 
 /**
- * Type scale mapped from the Figma wireframe (px → pt). `weight`/`letterSpacing`
- * folded in so a variant is a drop-in `TextStyle`.
+ * Type scale, re-derived directly from the Figma wireframe's actual pixel
+ * values (not estimated) — pulled from the raw generated JSX across Home,
+ * Discovery, Restaurant Detail, and Log a Visit, e.g. every "SectionLabel" is
+ * text-[9px] tracking-[0.9px] uppercase, every card/row name is ~10–11px bold,
+ * body copy is 11px. The original scale here was designed from general
+ * judgment rather than these numbers and ran 1–3px large almost everywhere —
+ * this pass corrects it. `weight`/`letterSpacing` folded in so a variant is a
+ * drop-in `TextStyle`.
  */
 export const type = {
   display: { fontSize: 32, lineHeight: 32, fontWeight: '700', letterSpacing: -0.5 },
   h1: { fontSize: 28, lineHeight: 28, fontWeight: '700', letterSpacing: -0.7 },
-  h2: { fontSize: 20, lineHeight: 26, fontWeight: '700', letterSpacing: -0.3 },
+  h2: { fontSize: 17, lineHeight: 21, fontWeight: '700', letterSpacing: -0.2 },
   title: { fontSize: 15, lineHeight: 20, fontWeight: '700', letterSpacing: -0.2 },
-  cardTitle: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
-  body: { fontSize: 13, lineHeight: 19, fontWeight: '400' },
-  bodyStrong: { fontSize: 13, lineHeight: 19, fontWeight: '600' },
-  small: { fontSize: 11, lineHeight: 16, fontWeight: '400' },
-  caption: { fontSize: 10, lineHeight: 14, fontWeight: '400' },
-  sectionLabel: { fontSize: 11, lineHeight: 14, fontWeight: '400', letterSpacing: 0.9, textTransform: 'uppercase' },
-  link: { fontSize: 11, lineHeight: 16, fontWeight: '400', textDecorationLine: 'underline' },
+  /** Small bold uppercase modal/header title, e.g. "LOG A VISIT". */
+  modalTitle: { fontSize: 12, lineHeight: 18, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
+  cardTitle: { fontSize: 11, lineHeight: 15, fontWeight: '700' },
+  body: { fontSize: 11, lineHeight: 17, fontWeight: '400' },
+  bodyStrong: { fontSize: 11, lineHeight: 17, fontWeight: '600' },
+  small: { fontSize: 10, lineHeight: 14, fontWeight: '400' },
+  caption: { fontSize: 9, lineHeight: 13, fontWeight: '400' },
+  /** Smallest tier — tag chips, bylines ("by Jordan R."), distances. */
+  micro: { fontSize: 8, lineHeight: 11, fontWeight: '400' },
+  sectionLabel: { fontSize: 9, lineHeight: 13, fontWeight: '400', letterSpacing: 0.9, textTransform: 'uppercase' },
+  link: { fontSize: 9, lineHeight: 13, fontWeight: '400', textDecorationLine: 'underline' },
 } as const satisfies Record<string, TextStyle>;
 
 export type TypeVariant = keyof typeof type;

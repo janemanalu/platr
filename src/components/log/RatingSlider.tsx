@@ -19,7 +19,7 @@ export function RatingSlider({ label, value, onChange }: RatingSliderProps) {
         <Text variant="small" color="textBody" style={styles.label}>
           {label}
         </Text>
-        <Text variant="bodyStrong" color="textStrong">
+        <Text variant="title" color="textStrong">
           {value.toFixed(1)}
         </Text>
       </View>
@@ -35,7 +35,7 @@ export function RatingSlider({ label, value, onChange }: RatingSliderProps) {
       />
       <View style={styles.scale}>
         {[0, 2.5, 5, 7.5, 10].map((n) => (
-          <Text key={n} variant="caption" color="textDisabled">
+          <Text key={n} variant="micro" color="textDisabled">
             {n % 1 === 0 ? n : n.toFixed(1)}
           </Text>
         ))}

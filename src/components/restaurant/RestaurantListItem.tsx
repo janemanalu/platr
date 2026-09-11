@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Chip, Text, Thumbnail } from '@/components/ui';
-import { borderWidth, colors, space } from '@/theme';
+import { Card, Text, Thumbnail } from '@/components/ui';
 import { PRICE } from '@/lib/placeholder';
+import { gray, space } from '@/theme';
+
+import { MicroTag } from './MicroTag';
 
 export type RestaurantListItemProps = {
   name: string;
@@ -15,7 +17,11 @@ export type RestaurantListItemProps = {
   onPress?: () => void;
 };
 
-/** Discovery list row: thumbnail, name + price, "cuisine · area", tag chips, chevron. */
+/**
+ * Discovery result row — an individually bordered compact card (Figma 13:2142):
+ * 48×48 thumbnail, name + price, "cuisine · area, city", small rectangular tag
+ * row, trailing chevron. Not a big image-first card, not a divided list.
+ */
 export function RestaurantListItem({
   name,
   cuisine,
@@ -26,52 +32,47 @@ export function RestaurantListItem({
   onPress,
 }: RestaurantListItemProps) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-    >
+    <Card padding={0} onPress={onPress} style={styles.card}>
       <Thumbnail uri={null} size={48} />
       <View style={styles.body}>
         <View style={styles.titleRow}>
-          <Text variant="cardTitle" color="textStrong" numberOfLines={1} style={styles.name}>
+          <Text variant="bodyStrong" color="textStrong" numberOfLines={1} style={styles.name}>
             {name}
           </Text>
           {priceLevel ? (
-            <Text variant="caption" color="textFaint">
+            <Text variant="small" color="textLabel">
               {PRICE[priceLevel]}
             </Text>
           ) : null}
         </View>
-        <Text variant="caption" color="textLabel">
+        <Text variant="small" color="textFaint" numberOfLines={1}>
           {cuisine} · {area}, {city}
         </Text>
         {tags.length > 0 ? (
           <View style={styles.tags}>
             {tags.map((t) => (
-              <Chip key={t} label={t} static />
+              <MicroTag key={t} label={t} />
             ))}
           </View>
         ) : null}
       </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.textDisabled} />
-    </Pressable>
+      <Ionicons name="chevron-forward" size={14} color={gray[250]} />
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space[3],
-    paddingVertical: space[3],
-    borderBottomWidth: borderWidth,
-    borderBottomColor: colors.divider,
+    padding: space[3],
+    borderColor: gray[200],
   },
-  pressed: { opacity: 0.6 },
-  body: { flex: 1, gap: space[1] },
+  body: { flex: 1, gap: 2 },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space[2] },
   name: { flex: 1 },
-  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: space[1], paddingTop: 2 },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, paddingTop: 2 },
 });
 
 export default RestaurantListItem;

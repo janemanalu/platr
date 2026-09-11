@@ -49,7 +49,7 @@ export default function LogAVisit() {
         <Pressable onPress={() => goBack(router, '/')} hitSlop={12} style={styles.headerBtn}>
           <Ionicons name="chevron-back" size={18} color={colors.textFaint} />
         </Pressable>
-        <Text variant="title" color="textStrong">
+        <Text variant="modalTitle" color="textStrong">
           Log a Visit
         </Text>
         <View style={styles.headerBtn} />

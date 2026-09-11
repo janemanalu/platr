@@ -24,7 +24,7 @@ export function SegmentedToggle<T extends string>({ options, value, onChange }: 
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
           >
-            <Text variant="caption" color={active ? 'onActive' : 'textFaint'} style={styles.label}>
+            <Text variant="sectionLabel" color={active ? 'onActive' : 'textFaint'}>
               {opt}
             </Text>
           </Pressable>
@@ -38,13 +38,12 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     borderWidth,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     alignSelf: 'flex-start',
   },
-  seg: { paddingVertical: space[2], paddingHorizontal: space[3] },
-  divider: { borderLeftWidth: borderWidth, borderLeftColor: colors.border },
+  seg: { paddingVertical: 6, paddingHorizontal: space[3] },
+  divider: { borderLeftWidth: borderWidth, borderLeftColor: colors.borderStrong },
   segActive: { backgroundColor: colors.bgActive },
-  label: { textTransform: 'uppercase', letterSpacing: 0.6 },
 });
 
 export default SegmentedToggle;

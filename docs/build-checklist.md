@@ -83,6 +83,28 @@ Living list of what's done and what's left. Updated as the build progresses.
 
 ## Fixes
 
+- [x] **Type scale corrected against actual Figma pixel values** — the original
+      `theme/index.ts` scale was estimated, not derived, and ran 1–3px large
+      almost everywhere (`sectionLabel` was 11px vs Figma's 9px, `body`/
+      `bodyStrong`/`cardTitle` were 13px vs 11px, etc.). Re-derived every value
+      from the raw Figma JSX across Home/Discovery/Restaurant Detail/Log a
+      Visit; added `micro` (8px) and `modalTitle` (12px bold uppercase) tiers.
+      Verified the correction improves Home, Restaurant Detail, Log a Visit,
+      and Profile without breaking legibility — not individually re-verified on
+      Social/Find for Me/User Profile/List Detail/Settings/Post view, but they
+      use the same shared `Text`/theme so should inherit it consistently.
+- [x] **Discovery list rebuilt to match `13:2142` exactly** (re-pulled fresh,
+      not from memory): 48×48 thumbnails (was already 48 in code, but read
+      large next to oversized text — fixed by the scale correction above),
+      compact non-stretching Map/List pill toggle, outlined (not filled)
+      "✦ Find for me" + Filters buttons, each result row now its own bordered
+      card (was one list with dividers) with rectangular `MicroTag` chips (not
+      pills) instead of the pill `Chip`, `#f5f5f5`-toned results background.
+      New component: `restaurant/MicroTag`.
+- [x] Clarified: the gear icon that appeared to "overlap" the Find for Me
+      button in screenshots is Expo Go's own floating dev-menu button — not
+      app code, doesn't exist in a production build, no z-index bug found.
+
 - [x] "The action 'GO_BACK' was not handled" — the root layout used to mount a
       bare loading `View` (no `<Stack>` at all) until the auth check resolved,
       so a cold deep link into a nested screen had no stable navigator to land

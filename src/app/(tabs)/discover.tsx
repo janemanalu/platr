@@ -34,15 +34,15 @@ export default function Discover() {
             >
               <Ionicons
                 name="options-outline"
-                size={13}
+                size={11}
                 color={filtersOpen ? colors.onActive : colors.textFaint}
               />
-              <Text variant="caption" color={filtersOpen ? 'onActive' : 'textFaint'} style={styles.upper}>
+              <Text variant="sectionLabel" color={filtersOpen ? 'onActive' : 'textFaint'}>
                 Filters
               </Text>
             </Pressable>
             <Pressable onPress={() => router.push('/find-for-me')} style={styles.findBtn}>
-              <Text variant="caption" color="onActive" style={styles.upper}>
+              <Text variant="caption" color="textBody" style={styles.findBtnText}>
                 ✦ Find for me
               </Text>
             </Pressable>
@@ -59,7 +59,11 @@ export default function Discover() {
       </View>
 
       {view === 'List' ? (
-        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.listBg}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        >
           <Text variant="sectionLabel" color="textLabel">
             {discovery.results.length} results · {discovery.areaLabel}
           </Text>
@@ -85,12 +89,12 @@ export default function Discover() {
                 onPress={() => router.push(`/restaurant/${pin.id}`)}
                 style={[styles.pin, { left: pin.x as `${number}%`, top: pin.y as `${number}%` }]}
               >
-                <Text variant="caption" color="onActive" style={styles.pinText}>
+                <Text variant="micro" color="onActive">
                   {pin.label}
                 </Text>
               </Pressable>
             ))}
-            <Text variant="caption" color="textFaint" style={styles.mapNote}>
+            <Text variant="micro" color="textFaint" style={styles.mapNote}>
               Interactive map · tap pins
             </Text>
           </View>
@@ -117,31 +121,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[4],
     paddingTop: space[2],
     paddingBottom: space[3],
-    gap: space[3],
+    gap: space[2],
     borderBottomWidth: borderWidth,
-    borderBottomColor: colors.divider,
+    borderBottomColor: gray[200],
   },
   toolbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   toolbarRight: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  upper: { textTransform: 'uppercase', letterSpacing: 0.6 },
   filterBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[1],
+    gap: 6,
     borderWidth,
-    borderColor: colors.border,
-    paddingVertical: space[2],
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bg,
+    paddingVertical: 6,
     paddingHorizontal: space[2],
   },
   filterBtnActive: { backgroundColor: colors.bgActive, borderColor: colors.bgActive },
   findBtn: {
-    backgroundColor: colors.bgActive,
-    paddingVertical: space[2],
+    borderWidth,
+    borderColor: colors.textBody,
+    backgroundColor: colors.bg,
+    paddingVertical: 6,
     paddingHorizontal: space[2],
   },
+  findBtnText: { fontWeight: '700' },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
 
-  list: { paddingHorizontal: space[4], paddingVertical: space[3], paddingBottom: space[8], gap: 0 },
+  listBg: { backgroundColor: colors.bgSubtle },
+  list: { paddingHorizontal: space[4], paddingVertical: space[3], paddingBottom: space[8], gap: space[2] },
 
   mapWrap: { flex: 1, padding: space[4], gap: space[3] },
   map: { flex: 1, backgroundColor: gray[200], borderWidth, borderColor: colors.borderStrong },
@@ -151,7 +159,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[1],
     paddingVertical: 2,
   },
-  pinText: { fontSize: 8, lineHeight: 10 },
   mapNote: { position: 'absolute', right: space[2], bottom: space[2] },
   mapBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

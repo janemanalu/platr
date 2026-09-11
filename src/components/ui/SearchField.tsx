@@ -12,7 +12,7 @@ export type SearchFieldProps = TextInputProps & {
 export function SearchField({ icon = 'search', style, ...rest }: SearchFieldProps) {
   return (
     <View style={styles.wrap}>
-      {icon ? <Ionicons name={icon} size={15} color={colors.textDisabled} /> : null}
+      {icon ? <Ionicons name={icon} size={13} color={colors.textDisabled} /> : null}
       <TextInput
         style={[styles.input, style]}
         placeholderTextColor={colors.textDisabled}
@@ -29,10 +29,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space[2],
     borderWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.bg,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.bgSubtle,
     paddingHorizontal: space[3],
-    paddingVertical: space[3],
+    paddingVertical: space[2],
   },
   input: {
     flex: 1,
