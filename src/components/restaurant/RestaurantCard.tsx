@@ -23,11 +23,15 @@ export function RestaurantCard({
   photoUri,
   score,
   scoreBy,
-  width = 150,
+  width,
   onPress,
 }: RestaurantCardProps) {
   return (
-    <Card padding={0} onPress={onPress} style={[styles.card, { width }]}>
+    <Card
+      padding={0}
+      onPress={onPress}
+      style={[styles.card, width == null ? styles.fill : { width }]}
+    >
       <Thumbnail uri={photoUri} fill aspectRatio={1.5} />
       <View style={styles.meta}>
         <Text variant="cardTitle" color="textStrong" numberOfLines={1}>
@@ -56,6 +60,7 @@ export function RestaurantCard({
 
 const styles = StyleSheet.create({
   card: { overflow: 'hidden' },
+  fill: { alignSelf: 'stretch', width: '100%' },
   meta: { padding: space[2], gap: space[1] },
   scoreRow: {
     flexDirection: 'row',

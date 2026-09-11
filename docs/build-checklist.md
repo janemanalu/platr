@@ -32,12 +32,18 @@ Living list of what's done and what's left. Updated as the build progresses.
 - [x] Log a Visit (`13:2948`, `13:3829`) — restaurant search, Food/Vibe
       RatingSliders, notes, photo upload stub, status grid, friend tagging, tag
       picker, anon suggestion, Save Entry (form state only; no insert yet)
-- [ ] Profile (`13:5811`, `13:6351`) + inline Create a List (`13:6892`)
-- [ ] Social Feed (`13:4270`, `13:4824`) + Post view overlay
-- [ ] Find for Me (`13:2611`)
-- [ ] Other User Profile (`13:5378`)
-- [ ] Settings — **no Figma node**; minimal screen (from Home avatar tap)
-- [ ] List Detail (`13:8356`) — cards / wishlist-rows / list-rows / gallery variants
+- [x] Profile (`13:5811`, `13:6351`) — header + stats, 4 status sections with
+      per-section privacy toggles, inline Create a List form (`13:6892`), gallery grid
+- [x] Social Feed (`13:4270`, `13:4824`) — Friends/Everyone toggle, story bubbles,
+      Share-your-last-meal nudge, 2-col feed grid with featured cards
+- [x] Post view (`/post/[id]`, modal) — photo, author, restaurant, F/V scores,
+      notes, like/comment counts (like toggles; counts static)
+- [x] Find for Me (`13:2611`) — Occasion / Mood / Budget chip groups, Show me ✦,
+      inline results
+- [x] Other User Profile (`13:5378`) — mutual friends, Follow toggle, public
+      sections only (read-only privacy), gallery
+- [x] Settings — minimal: account card, preference rows (stubs), sign out
+- [x] List Detail (`13:8356`) — `?variant=` cards / list-rows / wishlist-rows / gallery
 
 ## Auth (no Figma design — minimal build)
 

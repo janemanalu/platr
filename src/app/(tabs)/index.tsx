@@ -113,6 +113,7 @@ export default function Home() {
                 key={r.id}
                 name={r.name}
                 cuisine={r.cuisine}
+                width={150}
                 onPress={() => openRestaurant(r.id)}
               />
             ))}
@@ -134,6 +135,7 @@ export default function Home() {
                 name={restaurant.name}
                 score={score}
                 scoreBy={reviewer}
+                width={150}
                 onPress={() => openRestaurant(restaurant.id)}
               />
             ))}

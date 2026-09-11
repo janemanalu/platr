@@ -4,6 +4,8 @@
  * Content matches the Figma wireframe.
  */
 
+import type { LogStatus } from './database.types';
+
 export type PlaceholderRestaurant = {
   id: string;
   name: string;
@@ -37,7 +39,132 @@ export const currentUser = {
   area: 'SCBD',
   city: 'Jakarta',
   avatar_url: null as string | null,
+  stats: { logged: 14, following: 0, followers: 23 },
 };
+
+/** Profile — the four status sections, each with a privacy flag + preview rows. */
+export const profileSections: {
+  status: LogStatus;
+  label: string;
+  isPublic: boolean;
+  total: number;
+  items: PlaceholderRestaurant[];
+}[] = [
+  {
+    status: 'go_to',
+    label: 'Go-To',
+    isPublic: true,
+    total: 2,
+    items: [restaurants.osteria, restaurants.kato],
+  },
+  {
+    status: 'visited',
+    label: 'Visited',
+    isPublic: true,
+    total: 6,
+    items: [restaurants.maebird, restaurants.deptculture],
+  },
+  {
+    status: 'wishlist',
+    label: 'Wishlist',
+    isPublic: false,
+    total: 2,
+    items: [restaurants.ilis, restaurants.bakmiekaret],
+  },
+  { status: 'blacklisted', label: 'Blacklisted', isPublic: false, total: 0, items: [] },
+];
+
+export const customLists = [
+  { id: 'brunch', name: 'Best Brunch Spots', visibility: 'public' as const, itemCount: 4 },
+];
+
+/** Friends to tag on a log — anyone you follow. */
+export const friends = [
+  { id: 'aisha', name: 'Aisha Kurnia', username: 'aishak' },
+  { id: 'ravi', name: 'Ravi Mehta', username: 'ravim' },
+  { id: 'sofia', name: 'Sofia Alvarez', username: 'sofiaa' },
+  { id: 'leo', name: 'Leo Tanaka', username: 'leot' },
+  { id: 'mei', name: 'Mei Wong', username: 'meiw' },
+];
+
+/** Profile gallery — every photo across the user's logs. */
+export const gallery = Array.from({ length: 14 }, (_, i) => ({
+  id: `photo-${i + 1}`,
+  logId: ['osteria', 'maebird', 'kato', 'ilis', 'deptculture', 'bakmiekaret'][i % 6],
+}));
+
+/** Social feed. */
+export const social = {
+  recentVisits: friendsPreview(),
+  feed: [
+    { id: 'f1', reviewer: 'Aisha', restaurant: restaurants.osteria, food: 9.0, vibe: 8.5 },
+    { id: 'f2', reviewer: 'Ravi', restaurant: restaurants.kato, food: 10.0, vibe: 7.0 },
+    { id: 'f3', reviewer: 'Sofia', restaurant: restaurants.deptculture, food: 9.5, vibe: 9.0 },
+    { id: 'f4', reviewer: 'Leo', restaurant: restaurants.maebird, food: 8.0, vibe: 6.5 },
+    {
+      id: 'f5',
+      reviewer: 'Ravi',
+      restaurant: restaurants.bakmiekaret,
+      food: 7.5,
+      vibe: 8.0,
+      featured: true,
+      preview: 'Unpretentious, generous portions — this one surprised me.',
+    },
+    { id: 'f6', reviewer: 'Aisha', restaurant: restaurants.ilis, food: 8.5, vibe: 9.5 },
+    { id: 'f7', reviewer: 'Mei', restaurant: restaurants.osteria, food: 9.0, vibe: 8.0 },
+  ],
+};
+
+function friendsPreview() {
+  return friends.map((f) => ({ id: f.id, name: f.name.split(' ')[0], initial: f.name[0] }));
+}
+
+/** Other user's profile (Social → tap a name). */
+export function otherUser(id: string) {
+  const base = friends.find((f) => f.id === id) ?? friends[0];
+  return {
+    id: base.id,
+    name: base.name,
+    username: base.username,
+    area: 'Kemang',
+    city: 'Jakarta',
+    mutualFriends: ['Ravi', 'Sofia'],
+    stats: { logged: 31, following: 42, followers: 115 },
+    isFollowing: false,
+    publicSections: [
+      { label: 'Go-To', total: 2, items: [restaurants.osteria, restaurants.kato] },
+      { label: 'Visited', total: 4, items: [restaurants.maebird] },
+    ],
+  };
+}
+
+/** Find for Me chip vocabulary. */
+export const findForMe = {
+  occasion: ['Solo', 'Date', 'Group Hangout', 'Quick Bite', 'Celebration'],
+  mood: ['Cozy', 'Adventurous', 'Familiar', 'Fancy', 'Casual'],
+  budget: ['$', '$$', '$$$', '$$$$'],
+  results: [restaurants.kato, restaurants.ilis, restaurants.osteria],
+};
+
+/** List Detail — layout variant depends on which screen opened it. */
+export type ListVariant = 'cards' | 'wishlist-rows' | 'list-rows' | 'gallery' | 'reviews';
+
+export function listDetail(id: string, variant: ListVariant = 'cards') {
+  const NAMES: Record<string, string> = {
+    'tastes-like-you': 'Tastes Like You',
+    trending: 'Trending Near You',
+    wishlist: 'Your Wishlist',
+    'go-to': 'Go-To',
+    visited: 'Visited',
+    brunch: 'Best Brunch Spots',
+  };
+  return {
+    name: NAMES[id] ?? 'List',
+    subtitle: id === 'tastes-like-you' ? 'Based on your logs and wishlist' : undefined,
+    variant,
+    items: Object.values(restaurants),
+  };
+}
 
 export const home = {
   streak: 5,
@@ -188,15 +315,6 @@ export function restaurantDetail(id: string): RestaurantDetail {
 export function reviewCategory(restaurantId: string, key: string): ReviewCategory | undefined {
   return restaurantDetail(restaurantId).reviews.find((r) => r.key === key);
 }
-
-/** Friends to tag on a log — anyone you follow. */
-export const friends = [
-  { id: 'aisha', name: 'Aisha Kurnia', username: 'aishak' },
-  { id: 'ravi', name: 'Ravi Mehta', username: 'ravim' },
-  { id: 'sofia', name: 'Sofia Alvarez', username: 'sofiaa' },
-  { id: 'leo', name: 'Leo Tanaka', username: 'leot' },
-  { id: 'mei', name: 'Mei Wong', username: 'meiw' },
-];
 
 /** Fixed tag vocabulary for the Log a Visit "Tags" picker (mirrors 0005_seed_tags). */
 export const tagOptions = [
