@@ -77,9 +77,26 @@ Living list of what's done and what's left. Updated as the build progresses.
 
 ## Google Places (Step 5)
 
-- [ ] `EXPO_PUBLIC_GOOGLE_PLACES_API_KEY` in `.env`
-- [ ] Places lib — autocomplete + details → upsert `restaurants`
-- [ ] Restaurant search in Log a Visit + Discovery wired to Places
+- [x] `EXPO_PUBLIC_GOOGLE_PLACES_API_KEY` in `.env` (also covers Maps SDK
+      iOS/Android for whenever real map rendering lands)
+- [x] `src/lib/googlePlaces.ts` — Autocomplete + Place Details (New API),
+      price-level mapping, photo URL construction. Verified live: autocomplete
+      and details both return real results against the actual API.
+- [x] `src/lib/restaurants.ts#upsertRestaurantFromPlace` — find-or-create in
+      `restaurants` keyed on `google_place_id`.
+- [x] `components/restaurant/PlaceSearchField` — debounced autocomplete
+      dropdown + resolve-on-select; wired into **Log a Visit**'s restaurant
+      field.
+- [x] End-to-end verified outside the simulator (autocomplete → details →
+      Supabase select-or-insert) with a real query — every step returned real
+      data. The insert step correctly failed with an RLS 42501 under the anon
+      key, as expected (no auth session) — inserting for real needs a signed-in
+      user, i.e. dev-skip-auth won't cut it for this one. Turn off "Confirm
+      email" (see Backend follow-ups) and sign up for real to test the write.
+- [ ] **Discovery's search bar** — still filters the local placeholder list
+      only, not wired to live Places search. Deliberately scoped out of this
+      pass; revisit if Discovery should support searching real-world places
+      beyond the curated/logged set.
 
 ## Fixes
 
@@ -89,10 +106,10 @@ Living list of what's done and what's left. Updated as the build progresses.
       `bodyStrong`/`cardTitle` were 13px vs 11px, etc.). Re-derived every value
       from the raw Figma JSX across Home/Discovery/Restaurant Detail/Log a
       Visit; added `micro` (8px) and `modalTitle` (12px bold uppercase) tiers.
-      Verified the correction improves Home, Restaurant Detail, Log a Visit,
-      and Profile without breaking legibility — not individually re-verified on
-      Social/Find for Me/User Profile/List Detail/Settings/Post view, but they
-      use the same shared `Text`/theme so should inherit it consistently.
+      Verified the correction on Home, Restaurant Detail, Log a Visit, Profile,
+      **and** — full pass — Social Feed, Find for Me, Other User Profile,
+      List Detail, Settings, Post view: all clean, no regressions, nothing
+      illegibly small.
 - [x] **Discovery list rebuilt to match `13:2142` exactly** (re-pulled fresh,
       not from memory): 48×48 thumbnails (was already 48 in code, but read
       large next to oversized text — fixed by the scale correction above),

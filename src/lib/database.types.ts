@@ -224,6 +224,7 @@ export interface Database {
           vibe_avg: number | null;
           overall_avg: number | null;
         };
+        Relationships: [];
       };
       restaurant_tags_view: {
         Row: {
@@ -234,6 +235,7 @@ export interface Database {
           slug: string;
           uses: number;
         };
+        Relationships: [];
       };
     };
     Functions: {

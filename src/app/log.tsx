@@ -5,9 +5,12 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RatingSlider } from '@/components/log/RatingSlider';
+import { PlaceSearchField } from '@/components/restaurant/PlaceSearchField';
 import { Button, Chip, SearchField, Text } from '@/components/ui';
+import type { PlaceDetails } from '@/lib/googlePlaces';
 import { goBack } from '@/lib/nav';
 import { friends, restaurants, tagOptions } from '@/lib/placeholder';
+import { upsertRestaurantFromPlace } from '@/lib/restaurants';
 import { borderWidth, colors, fontFamily, space, type as typeScale } from '@/theme';
 import type { LogStatus } from '@/lib/database.types';
 
@@ -24,6 +27,9 @@ export default function LogAVisit() {
   const prefilled = restaurantId ? restaurants[restaurantId]?.name : undefined;
 
   const [restaurantQuery, setRestaurantQuery] = useState(prefilled ?? '');
+  const [resolvedRestaurantId, setResolvedRestaurantId] = useState<string | null>(restaurantId ?? null);
+  const [linkingPlace, setLinkingPlace] = useState(false);
+  const [placeError, setPlaceError] = useState<string | null>(null);
   const [food, setFood] = useState(7);
   const [vibe, setVibe] = useState(6.5);
   const [notes, setNotes] = useState('');
@@ -43,6 +49,20 @@ export default function LogAVisit() {
   const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
+  async function handleSelectPlace(details: PlaceDetails) {
+    setResolvedRestaurantId(null);
+    setPlaceError(null);
+    setLinkingPlace(true);
+    try {
+      const restaurant = await upsertRestaurantFromPlace(details);
+      setResolvedRestaurantId(restaurant.id);
+    } catch (e) {
+      setPlaceError(e instanceof Error ? e.message : 'Could not save this place');
+    } finally {
+      setLinkingPlace(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.header}>
@@ -58,11 +78,28 @@ export default function LogAVisit() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Field label="Restaurant">
-            <SearchField
-              placeholder="Search or select…"
+            <PlaceSearchField
               value={restaurantQuery}
-              onChangeText={setRestaurantQuery}
+              onChangeText={(t) => {
+                setRestaurantQuery(t);
+                setResolvedRestaurantId(null);
+                setPlaceError(null);
+              }}
+              onSelect={handleSelectPlace}
             />
+            {linkingPlace ? (
+              <Text variant="caption" color="textFaint">
+                Adding to Platr…
+              </Text>
+            ) : resolvedRestaurantId ? (
+              <Text variant="caption" color="textFaint">
+                ✓ Linked
+              </Text>
+            ) : placeError ? (
+              <Text variant="caption" color="textBody">
+                {placeError}
+              </Text>
+            ) : null}
           </Field>
 
           <Field label="Ratings — 0 to 10 (0.5 steps)">
