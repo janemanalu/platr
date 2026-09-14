@@ -1,18 +1,59 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { RestaurantRow } from '@/components/restaurant/RestaurantRow';
 import { Card, SectionHeader, Text } from '@/components/ui';
-import { currentUser, home } from '@/lib/placeholder';
+import { useTastesLikeYou, useTrendingNearYou } from '@/hooks/useHomeRecommendations';
+import { useMyProfile } from '@/hooks/useProfile';
+import { useMyStreak } from '@/hooks/useStreak';
+import { useUserLogs } from '@/hooks/useUserLogs';
+import { useUserId } from '@/lib/auth';
 import { borderWidth, colors, gray, radius, space } from '@/theme';
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export default function Home() {
   const router = useRouter();
+  const userId = useUserId();
   const openRestaurant = (id: string) => router.push(`/restaurant/${id}`);
+
+  const profile = useMyProfile();
+  const streak = useMyStreak();
+  const logs = useUserLogs(userId);
+  const tastesLikeYou = useTastesLikeYou(userId);
+  const trendingNearYou = useTrendingNearYou(userId);
+
+  const wishlist = useMemo(() => (logs.data ?? []).filter((l) => l.status === 'wishlist'), [logs.data]);
+
+  const pins = useMemo(() => {
+    const points = (logs.data ?? [])
+      .filter((l) => (l.status === 'go_to' || l.status === 'visited') && l.restaurant.lat != null && l.restaurant.lng != null)
+      .map((l) => ({ id: l.restaurant.id, label: initials(l.restaurant.name), lat: l.restaurant.lat!, lng: l.restaurant.lng! }));
+    if (points.length === 0) return [];
+    const lats = points.map((p) => p.lat);
+    const lngs = points.map((p) => p.lng);
+    const [minLat, maxLat] = [Math.min(...lats), Math.max(...lats)];
+    const [minLng, maxLng] = [Math.min(...lngs), Math.max(...lngs)];
+    const norm = (v: number, min: number, max: number) => (max === min ? 0.5 : (v - min) / (max - min));
+    return points.map((p) => ({
+      ...p,
+      // keep pins off the edges and out of the bottom strip, where the caption sits
+      x: `${12 + norm(p.lng, minLng, maxLng) * 70}%`,
+      y: `${10 + (1 - norm(p.lat, minLat, maxLat)) * 55}%`,
+    }));
+  }, [logs.data]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -25,7 +66,7 @@ export default function Home() {
           <View style={styles.headerDivider} />
           <Ionicons name="location-outline" size={12} color={colors.textFaint} />
           <Text variant="small" color="textMuted">
-            {currentUser.area}, {currentUser.city}
+            {profile.data?.area ?? '—'}, {profile.data?.city ?? '—'}
           </Text>
         </View>
         <Pressable
@@ -34,8 +75,8 @@ export default function Home() {
           onPress={() => router.push('/settings')}
           style={styles.avatar}
         >
-          {currentUser.avatar_url ? (
-            <Image source={{ uri: currentUser.avatar_url }} style={StyleSheet.absoluteFill} />
+          {profile.data?.avatar_url ? (
+            <Image source={{ uri: profile.data.avatar_url }} style={StyleSheet.absoluteFill} />
           ) : (
             <Ionicons name="person-outline" size={14} color={colors.textMuted} />
           )}
@@ -49,7 +90,7 @@ export default function Home() {
             welcome back,
           </Text>
           <Text variant="h1" color="text">
-            {currentUser.display_name}!
+            {(profile.data?.display_name ?? 'there').split(' ')[0]}!
           </Text>
           <Text variant="body" color="textFaint" style={styles.italic}>
             What are we eating today?
@@ -59,9 +100,13 @@ export default function Home() {
         {/* Streak */}
         <View style={styles.section}>
           <Card style={styles.streak}>
-            <Text variant="display" color="textStrong">
-              {home.streak}
-            </Text>
+            {streak.isLoading ? (
+              <ActivityIndicator color={colors.textFaint} />
+            ) : (
+              <Text variant="display" color="textStrong">
+                {streak.data ?? 0}
+              </Text>
+            )}
             <View style={styles.streakMeta}>
               <Text variant="small" color="textBody">
                 day streak
@@ -82,19 +127,19 @@ export default function Home() {
             onAction={() => router.push('/discover')}
           />
           <View style={styles.map}>
-            {home.foodMap.pins.map((pin, i) => (
+            {pins.map((pin) => (
               <Pressable
                 key={pin.id}
                 onPress={() => openRestaurant(pin.id)}
-                style={[styles.pin, PIN_POSITIONS[i]]}
+                style={[styles.pin, { left: pin.x, top: pin.y } as never]}
               >
                 <Text variant="caption" color="onActive" style={styles.pinText}>
-                  {pin.initials}
+                  {pin.label}
                 </Text>
               </Pressable>
             ))}
             <Text variant="caption" color="textFaint" style={styles.mapCaption}>
-              {home.foodMap.loggedCount} logged · tap pin for detail
+              {pins.length ? `${pins.length} logged · tap pin for detail` : 'Log a visit to start your map'}
             </Text>
           </View>
         </View>
@@ -104,20 +149,27 @@ export default function Home() {
           <SectionHeader
             label="Tastes Like You"
             caption="Based on your logs and wishlist"
-            actionLabel={`See all (${home.tastesLikeYouTotal})`}
+            actionLabel={`See all (${tastesLikeYou.total})`}
             onAction={() => router.push('/list/tastes-like-you')}
           />
-          <Carousel>
-            {home.tastesLikeYou.map((r) => (
-              <RestaurantCard
-                key={r.id}
-                name={r.name}
-                cuisine={r.cuisine}
-                width={150}
-                onPress={() => openRestaurant(r.id)}
-              />
-            ))}
-          </Carousel>
+          {tastesLikeYou.data.length === 0 && !tastesLikeYou.isLoading ? (
+            <Text variant="caption" color="textDisabled">
+              You've logged the whole catalog so far — check back as more restaurants join Platr.
+            </Text>
+          ) : (
+            <Carousel>
+              {tastesLikeYou.data.map((r) => (
+                <RestaurantCard
+                  key={r.id}
+                  name={r.name}
+                  cuisine={r.cuisine ?? undefined}
+                  photoUri={r.cover_photo_url}
+                  width={150}
+                  onPress={() => openRestaurant(r.id)}
+                />
+              ))}
+            </Carousel>
+          )}
         </View>
 
         {/* Trending Near You */}
@@ -125,42 +177,55 @@ export default function Home() {
           <SectionHeader
             label="Trending Near You"
             caption="Highly-rated by friends nearby"
-            actionLabel={`See all (${home.trendingNearYouTotal})`}
+            actionLabel={`See all (${trendingNearYou.total})`}
             onAction={() => router.push('/list/trending')}
           />
-          <Carousel>
-            {home.trendingNearYou.map(({ restaurant, score, reviewer }) => (
-              <RestaurantCard
-                key={restaurant.id}
-                name={restaurant.name}
-                score={score}
-                scoreBy={reviewer}
-                width={150}
-                onPress={() => openRestaurant(restaurant.id)}
-              />
-            ))}
-          </Carousel>
+          {trendingNearYou.data.length === 0 && !trendingNearYou.isLoading ? (
+            <Text variant="caption" color="textDisabled">
+              Follow some friends to see what they're loving nearby.
+            </Text>
+          ) : (
+            <Carousel>
+              {trendingNearYou.data.map(({ restaurant, score, reviewer }) => (
+                <RestaurantCard
+                  key={restaurant.id}
+                  name={restaurant.name}
+                  score={score}
+                  scoreBy={reviewer}
+                  photoUri={restaurant.cover_photo_url}
+                  width={150}
+                  onPress={() => openRestaurant(restaurant.id)}
+                />
+              ))}
+            </Carousel>
+          )}
         </View>
 
         {/* Your Wishlist */}
         <View style={styles.section}>
           <SectionHeader
             label="Your Wishlist"
-            actionLabel={`See all (${home.wishlistTotal})`}
+            actionLabel={`See all (${wishlist.length})`}
             onAction={() => router.push('/list/wishlist')}
           />
-          <Card padding={0}>
-            {home.wishlist.map(({ restaurant, distanceKm }, i) => (
-              <RestaurantRow
-                key={restaurant.id}
-                name={restaurant.name}
-                subtitle={restaurant.cuisine}
-                trailing={`${distanceKm} km`}
-                divider={i < home.wishlist.length - 1}
-                onPress={() => openRestaurant(restaurant.id)}
-              />
-            ))}
-          </Card>
+          {wishlist.length === 0 ? (
+            <Text variant="caption" color="textDisabled">
+              Nothing on your wishlist yet.
+            </Text>
+          ) : (
+            <Card padding={0}>
+              {wishlist.map((l, i) => (
+                <RestaurantRow
+                  key={l.id}
+                  name={l.restaurant.name}
+                  subtitle={l.restaurant.cuisine ?? undefined}
+                  photoUri={l.restaurant.cover_photo_url}
+                  divider={i < wishlist.length - 1}
+                  onPress={() => openRestaurant(l.restaurant.id)}
+                />
+              ))}
+            </Card>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -179,13 +244,6 @@ function Carousel({ children }: { children: React.ReactNode }) {
     </ScrollView>
   );
 }
-
-const PIN_POSITIONS = [
-  { left: '16%', top: '18%' },
-  { left: '45%', top: '46%' },
-  { left: '68%', top: '14%' },
-  { left: '55%', top: '64%' },
-] as const;
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
