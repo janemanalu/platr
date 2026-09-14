@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GalleryGrid } from '@/components/profile/GalleryGrid';
@@ -9,70 +9,82 @@ import { PrivacyToggle } from '@/components/profile/PrivacyToggle';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileListSection } from '@/components/profile/ProfileListSection';
 import { Button, SearchField, SegmentedToggle, Text } from '@/components/ui';
-import { currentUser, customLists, gallery, profileSections } from '@/lib/placeholder';
+import { useFollowStats } from '@/hooks/useFollowStats';
+import { useGalleryPhotos } from '@/hooks/useGalleryPhotos';
+import { useMyProfile } from '@/hooks/useProfile';
+import { useSetStatusPrivacy, useStatusPrivacy } from '@/hooks/useStatusPrivacy';
+import { useProfileSections } from '@/hooks/useUserLogs';
+import { useUserId } from '@/lib/auth';
+import type { LogStatus } from '@/lib/database.types';
 import { borderWidth, colors, fontFamily, space, type as typeScale } from '@/theme';
 
 const VIS = ['Public', 'Private'] as const;
 
+const SECTIONS: { status: LogStatus; label: string }[] = [
+  { status: 'go_to', label: 'Go-To' },
+  { status: 'visited', label: 'Visited' },
+  { status: 'wishlist', label: 'Wishlist' },
+  { status: 'blacklisted', label: 'Blacklisted' },
+];
+
 export default function Profile() {
   const router = useRouter();
+  const userId = useUserId();
   const openRestaurant = (id: string) => router.push(`/restaurant/${id}`);
 
-  const [privacy, setPrivacy] = useState(() =>
-    Object.fromEntries(profileSections.map((s) => [s.status, s.isPublic])),
-  );
-  const [galleryPublic, setGalleryPublic] = useState(true);
+  const profile = useMyProfile();
+  const stats = useFollowStats(userId);
+  const sections = useProfileSections(userId);
+  const privacy = useStatusPrivacy(userId);
+  const setPrivacy = useSetStatusPrivacy(userId);
+  const gallery = useGalleryPhotos(userId);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [listName, setListName] = useState('');
   const [listVis, setListVis] = useState<(typeof VIS)[number]>('Private');
   const [addQuery, setAddQuery] = useState('');
 
+  if (profile.isLoading || sections.isLoading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.centered}>
+          <ActivityIndicator color={colors.textFaint} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const byStatus = { go_to: sections.goTo, visited: sections.visited, wishlist: sections.wishlist, blacklisted: sections.blacklisted };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <ProfileHeader
-          name={currentUser.full_name}
-          username={currentUser.username}
-          area={currentUser.area}
-          city={currentUser.city}
-          avatarUrl={currentUser.avatar_url}
-          stats={currentUser.stats}
+          name={profile.data?.display_name ?? '—'}
+          username={profile.data?.username ?? ''}
+          area={profile.data?.area ?? undefined}
+          city={profile.data?.city ?? undefined}
+          avatarUrl={profile.data?.avatar_url}
+          stats={{ logged: stats.data?.logged ?? 0, following: stats.data?.following ?? 0, followers: stats.data?.followers ?? 0 }}
         />
 
         <View style={styles.sections}>
-          {profileSections.map((s) => (
-            <ProfileListSection
-              key={s.status}
-              label={s.label}
-              items={s.items}
-              total={s.total}
-              isPublic={privacy[s.status]}
-              onTogglePrivacy={(next) => setPrivacy((p) => ({ ...p, [s.status]: next }))}
-              onOpenRestaurant={openRestaurant}
-              onSeeAll={() => router.push(`/list/${s.status.replace('_', '-')}?variant=list-rows`)}
-            />
-          ))}
+          {SECTIONS.map((s) => {
+            const logs = byStatus[s.status];
+            return (
+              <ProfileListSection
+                key={s.status}
+                label={s.label}
+                items={logs.slice(0, 2).map((l) => l.restaurant)}
+                total={logs.length}
+                isPublic={privacy.data?.[s.status] ?? false}
+                onTogglePrivacy={(next) => setPrivacy.mutate({ status: s.status, isPublic: next })}
+                onOpenRestaurant={openRestaurant}
+                onSeeAll={() => router.push(`/list/${s.status.replace('_', '-')}?variant=list-rows`)}
+              />
+            );
+          })}
         </View>
-
-        {/* Custom lists + inline create form */}
-        {customLists.map((l) => (
-          <Pressable
-            key={l.id}
-            onPress={() => router.push(`/list/${l.id}?variant=cards`)}
-            style={styles.customList}
-          >
-            <View>
-              <Text variant="bodyStrong" color="textStrong">
-                {l.name}
-              </Text>
-              <Text variant="caption" color="textDisabled">
-                {l.itemCount} places · {l.visibility}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.textDisabled} />
-          </Pressable>
-        ))}
 
         <View style={styles.createBlock}>
           <Pressable onPress={() => setCreateOpen((o) => !o)} style={styles.createHeader}>
@@ -84,6 +96,9 @@ export default function Profile() {
 
           {createOpen ? (
             <View style={styles.createForm}>
+              <Text variant="caption" color="textDisabled">
+                Custom lists aren't wired to save yet — tracked on the build checklist.
+              </Text>
               <Field label="List name">
                 <TextInputStyled value={listName} onChangeText={setListName} placeholder="e.g. Best Brunch Spots" />
               </Field>
@@ -119,18 +134,29 @@ export default function Profile() {
             </Text>
             <View style={styles.galleryHeadRight}>
               <Text variant="caption" color="textDisabled">
-                {gallery.length} photos
+                {gallery.data?.length ?? 0} photos
               </Text>
-              <PrivacyToggle isPublic={galleryPublic} onToggle={setGalleryPublic} />
             </View>
           </View>
-          <GalleryGrid photos={gallery} limit={6} onOpen={(logId) => router.push(`/restaurant/${logId}`)} />
-          <Text variant="caption" color="textDisabled">
-            Tap any photo → opens that log entry
-          </Text>
-          <Text variant="link" color="textFaint" onPress={() => router.push('/list/gallery?variant=gallery')}>
-            See all ({gallery.length})
-          </Text>
+          {gallery.data && gallery.data.length > 0 ? (
+            <>
+              <GalleryGrid
+                photos={gallery.data.map((p) => ({ id: p.id, logId: p.logId }))}
+                limit={6}
+                onOpen={(logId) => router.push(`/restaurant/${logId}`)}
+              />
+              <Text variant="caption" color="textDisabled">
+                Tap any photo → opens that log entry
+              </Text>
+              <Text variant="link" color="textFaint" onPress={() => router.push('/list/gallery?variant=gallery')}>
+                See all ({gallery.data.length})
+              </Text>
+            </>
+          ) : (
+            <Text variant="caption" color="textDisabled">
+              No photos yet — Log a Visit with a photo to fill this in. (Photo upload isn't wired yet.)
+            </Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -154,18 +180,10 @@ function TextInputStyled(props: React.ComponentProps<typeof TextInput>) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingHorizontal: space[4], paddingBottom: space[8], gap: space[5] },
 
   sections: { gap: space[4] },
-
-  customList: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth,
-    borderColor: colors.border,
-    padding: space[3],
-  },
 
   createBlock: { borderWidth, borderColor: colors.border },
   createHeader: {

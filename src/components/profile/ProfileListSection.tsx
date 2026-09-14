@@ -2,14 +2,23 @@ import { StyleSheet, View } from 'react-native';
 
 import { RestaurantRow } from '@/components/restaurant/RestaurantRow';
 import { Card, Text } from '@/components/ui';
-import type { PlaceholderRestaurant } from '@/lib/placeholder';
 import { space } from '@/theme';
 
 import { PrivacyToggle } from './PrivacyToggle';
 
+/** Minimal shape a section row needs — satisfied by both the real Restaurant row and placeholder fixtures. */
+export type ProfileListSectionItem = {
+  id: string;
+  name: string;
+  cuisine?: string | null;
+  area?: string | null;
+  city?: string | null;
+  cover_photo_url?: string | null;
+};
+
 export type ProfileListSectionProps = {
   label: string;
-  items: PlaceholderRestaurant[];
+  items: ProfileListSectionItem[];
   total: number;
   isPublic: boolean;
   /** Interactive privacy toggle (own profile only). */
@@ -47,7 +56,8 @@ export function ProfileListSection({
             <RestaurantRow
               key={r.id}
               name={r.name}
-              subtitle={`${r.cuisine} · ${r.area}, ${r.city}`}
+              subtitle={[r.cuisine, [r.area, r.city].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
+              photoUri={r.cover_photo_url}
               trailing="›"
               divider={i < items.length - 1}
               onPress={() => onOpenRestaurant(r.id)}
