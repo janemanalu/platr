@@ -44,6 +44,25 @@ export function useEveryoneFeed() {
   });
 }
 
+/** The signed-in user's own most recent review — powers the "Share your last meal" nudge. */
+export function useMyLastReview(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-last-review', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('id, created_at')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 /** One review by id — Post view. */
 export function useReview(reviewId: string | undefined) {
   return useQuery({
