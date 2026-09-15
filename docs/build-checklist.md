@@ -56,14 +56,39 @@ Living list of what's done and what's left. Updated as the build progresses.
 
 ## Backend follow-ups
 
-- [ ] Turn OFF "Confirm email" in Supabase dashboard for dev (Authentication →
-      Sign In / Providers → Email) so sign-up logs you straight in
-- [ ] `0006_dev_seed.sql` — sample restaurants/users/reviews (wireframe names) for
-      building against
-- [ ] Replace `src/lib/placeholder.ts` with real Supabase queries per screen
-- [ ] Data hooks layer (`src/hooks` / queries) per screen
-- [ ] Streak wired to `current_streak()` RPC
-- [ ] `restaurant_scores` / `restaurant_tags_view` wired into Home + Detail
+- [x] `0006_dev_seed.sql` (+ 0007 follow-up) — 6 real restaurants, 6 real auth
+      users (Jordan + 5 friends, password `platr-dev-2026`), follows, 16
+      logs+reviews, review_tags, likes, comments
+- [x] Data hooks layer — `src/hooks/`: useProfile, useStreak, useUserLogs/
+      useProfileSections, useStatusPrivacy, useFollowStats, useFollowing/
+      useIsFollowing/useToggleFollow, useRestaurants/useRestaurant,
+      useRestaurantReviews/useReviewCategories, useRestaurantTagGroups,
+      useSocialFeed (friends/everyone/one review/my-last-review),
+      useHomeRecommendations, useGalleryPhotos, useTags, useSaveVisit
+- [x] Home, Discovery, Restaurant Detail, Profile, Social Feed all replaced
+      `src/lib/placeholder.ts` with real Supabase queries (via TanStack Query)
+- [x] Streak wired to `current_streak()` RPC (real, verified: reads 3 for the
+      seeded Jordan account)
+- [x] `restaurant_scores` / `restaurant_tags_view` wired into Home, Discovery,
+      and Restaurant Detail
+- [x] **Log a Visit's Save Entry now actually inserts** — upserts the log
+      (one per user+restaurant), inserts a review with tags/friend-tags when
+      there's rating/notes content, inserts the anonymous suggestion
+      separately. Full chain verified end-to-end outside the simulator (can't
+      tap "Save Entry" via automation): the exact Supabase operations the
+      mutation performs were run directly and all succeeded (upsert, review
+      insert with auto-synced user/restaurant via the DB trigger, review_tags,
+      review_friend_tags, review_suggestions), then cleaned up. Screen itself
+      verified rendering correctly with a real restaurant prefilled and
+      "✓ Linked" showing.
+- [x] Dev auto sign-in — `EXPO_PUBLIC_DEV_SKIP_AUTH` now signs in for real as
+      `EXPO_PUBLIC_DEV_DEMO_EMAIL`/`PASSWORD` (defaults to seeded Jordan)
+      instead of a UI-only bypass, since per-user data needs a real `auth.uid()`
+- [ ] Turn OFF "Confirm email" in Supabase dashboard if you want a *different*
+      real account (not the seeded ones) to sign up and test with
+- [ ] `src/lib/placeholder.ts` is now unused by Home/Discovery/Restaurant
+      Detail/Profile/Social/Log a Visit — still used by Find for Me, Other
+      User Profile, List Detail, Settings, Post view (not in this pass's scope)
 - [ ] Regenerate `database.types.ts` from CLI once a Supabase login/token is set up
 
 ## Social features — tables exist, UI not built

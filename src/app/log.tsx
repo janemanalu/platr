@@ -1,18 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RatingSlider } from '@/components/log/RatingSlider';
 import { PlaceSearchField } from '@/components/restaurant/PlaceSearchField';
 import { Button, Chip, SearchField, Text } from '@/components/ui';
+import { useFollowing } from '@/hooks/useFollowing';
+import { useRestaurant } from '@/hooks/useRestaurants';
+import { useSaveVisit } from '@/hooks/useSaveVisit';
+import { useTags } from '@/hooks/useTags';
+import { useUserId } from '@/lib/auth';
+import type { LogStatus } from '@/lib/database.types';
 import type { PlaceDetails } from '@/lib/googlePlaces';
 import { goBack } from '@/lib/nav';
-import { friends, restaurants, tagOptions } from '@/lib/placeholder';
 import { upsertRestaurantFromPlace } from '@/lib/restaurants';
 import { borderWidth, colors, fontFamily, space, type as typeScale } from '@/theme';
-import type { LogStatus } from '@/lib/database.types';
 
 const STATUSES: { key: LogStatus; label: string }[] = [
   { key: 'visited', label: 'Visited' },
@@ -21,13 +25,20 @@ const STATUSES: { key: LogStatus; label: string }[] = [
   { key: 'go_to', label: 'Go-To' },
 ];
 
+/** Statuses that imply an actual visit — the only ones a rating makes sense for. */
+const RATED_STATUSES: LogStatus[] = ['visited', 'go_to'];
+
 export default function LogAVisit() {
   const router = useRouter();
-  const { restaurantId } = useLocalSearchParams<{ restaurantId?: string }>();
-  const prefilled = restaurantId ? restaurants[restaurantId]?.name : undefined;
+  const userId = useUserId();
+  const { restaurantId: prefilledId } = useLocalSearchParams<{ restaurantId?: string }>();
+  const prefilledRestaurant = useRestaurant(prefilledId);
+  const following = useFollowing(userId);
+  const allTags = useTags();
+  const saveVisit = useSaveVisit();
 
-  const [restaurantQuery, setRestaurantQuery] = useState(prefilled ?? '');
-  const [resolvedRestaurantId, setResolvedRestaurantId] = useState<string | null>(restaurantId ?? null);
+  const [restaurantQuery, setRestaurantQuery] = useState('');
+  const [resolvedRestaurantId, setResolvedRestaurantId] = useState<string | null>(prefilledId ?? null);
   const [linkingPlace, setLinkingPlace] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [food, setFood] = useState(7);
@@ -37,14 +48,25 @@ export default function LogAVisit() {
   const [friendQuery, setFriendQuery] = useState('');
   const [taggedFriends, setTaggedFriends] = useState<string[]>([]);
   const [tagsOpen, setTagsOpen] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const [suggestion, setSuggestion] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Fill in the restaurant name once it resolves (deep-linked from Restaurant Detail).
+  useEffect(() => {
+    if (prefilledRestaurant.data && !restaurantQuery) {
+      setRestaurantQuery(prefilledRestaurant.data.name);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefilledRestaurant.data]);
 
   const friendMatches = useMemo(() => {
     const q = friendQuery.trim().toLowerCase();
-    if (!q) return [];
-    return friends.filter((f) => f.name.toLowerCase().includes(q) || f.username.includes(q));
-  }, [friendQuery]);
+    if (!q || !following.data) return [];
+    return following.data.filter(
+      (f) => f.display_name.toLowerCase().includes(q) || f.username.includes(q),
+    );
+  }, [friendQuery, following.data]);
 
   const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
@@ -61,6 +83,31 @@ export default function LogAVisit() {
     } finally {
       setLinkingPlace(false);
     }
+  }
+
+  function handleSave() {
+    if (!resolvedRestaurantId) {
+      setSaveError('Pick a restaurant first.');
+      return;
+    }
+    setSaveError(null);
+    const rated = RATED_STATUSES.includes(status);
+    saveVisit.mutate(
+      {
+        restaurantId: resolvedRestaurantId,
+        status,
+        foodRating: rated ? food : undefined,
+        vibeRating: rated ? vibe : undefined,
+        notes,
+        tagIds,
+        friendIds: taggedFriends,
+        suggestion,
+      },
+      {
+        onSuccess: () => goBack(router, '/'),
+        onError: (e) => setSaveError(e instanceof Error ? e.message : 'Could not save this entry'),
+      },
+    );
   }
 
   return (
@@ -107,6 +154,11 @@ export default function LogAVisit() {
               <RatingSlider label="Food" value={food} onChange={setFood} />
               <RatingSlider label="Vibe" value={vibe} onChange={setVibe} />
             </View>
+            {!RATED_STATUSES.includes(status) ? (
+              <Text variant="caption" color="textDisabled">
+                Ratings save once you mark this Visited or Go-To.
+              </Text>
+            ) : null}
           </Field>
 
           <Field label="Quick notes">
@@ -163,7 +215,7 @@ export default function LogAVisit() {
                     style={styles.friendRow}
                   >
                     <Text variant="small" color="textBody">
-                      {f.name}
+                      {f.display_name}
                     </Text>
                     <Text variant="caption" color="textDisabled">
                       @{f.username}
@@ -175,11 +227,12 @@ export default function LogAVisit() {
             {taggedFriends.length > 0 ? (
               <View style={styles.chipWrap}>
                 {taggedFriends.map((id) => {
-                  const f = friends.find((x) => x.id === id)!;
+                  const f = following.data?.find((x) => x.id === id);
+                  if (!f) return null;
                   return (
                     <Chip
                       key={id}
-                      label={f.name}
+                      label={f.display_name}
                       active
                       onPress={() => toggle(taggedFriends, setTaggedFriends, id)}
                     />
@@ -191,22 +244,29 @@ export default function LogAVisit() {
 
           <Field label="Tags" hint="Fixed list — no custom tags">
             <Pressable onPress={() => setTagsOpen((o) => !o)} style={styles.select}>
-              <Text variant="body" color={tags.length ? 'textBody' : 'textDisabled'}>
-                {tags.length ? `${tags.length} selected` : 'Select tags…'}
+              <Text variant="body" color={tagIds.length ? 'textBody' : 'textDisabled'}>
+                {tagIds.length ? `${tagIds.length} selected` : 'Select tags…'}
               </Text>
               <Ionicons name={tagsOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textDisabled} />
             </Pressable>
             {tagsOpen ? (
               <View style={styles.chipWrap}>
-                {tagOptions.map((t) => (
-                  <Chip key={t} label={t} active={tags.includes(t)} onPress={() => toggle(tags, setTags, t)} />
+                {(allTags.data ?? []).map((t) => (
+                  <Chip
+                    key={t.id}
+                    label={t.label}
+                    active={tagIds.includes(t.id)}
+                    onPress={() => toggle(tagIds, setTagIds, t.id)}
+                  />
                 ))}
               </View>
-            ) : tags.length ? (
+            ) : tagIds.length ? (
               <View style={styles.chipWrap}>
-                {tags.map((t) => (
-                  <Chip key={t} label={t} active onPress={() => toggle(tags, setTags, t)} />
-                ))}
+                {tagIds.map((id) => {
+                  const t = allTags.data?.find((x) => x.id === id);
+                  if (!t) return null;
+                  return <Chip key={id} label={t.label} active onPress={() => toggle(tagIds, setTagIds, id)} />;
+                })}
               </View>
             ) : null}
           </Field>
@@ -222,7 +282,20 @@ export default function LogAVisit() {
             />
           </Field>
 
-          <Button label="Save Entry" fullWidth onPress={() => goBack(router, '/')} style={styles.save} />
+          {saveError ? (
+            <Text variant="small" color="textBody">
+              {saveError}
+            </Text>
+          ) : null}
+
+          <Button
+            label="Save Entry"
+            fullWidth
+            loading={saveVisit.isPending}
+            disabled={!resolvedRestaurantId}
+            onPress={handleSave}
+            style={styles.save}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
