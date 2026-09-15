@@ -10,15 +10,18 @@ export type ChipProps = Omit<PressableProps, 'children' | 'style'> & {
   active?: boolean;
   /** Render as a static tag (no press feedback, no button role). */
   static?: boolean;
+  /** Visually greyed out and unpressable — e.g. a selection limit reached. */
+  disabled?: boolean;
 };
 
 /**
- * Small pill tag. Inactive = white with hairline border; active = dark fill.
- * Used for cuisine tags, discovery filters, friend tags.
+ * Small pill tag. Inactive = white with hairline border; active = dark fill;
+ * disabled = greyed out and unpressable. Used for cuisine tags, discovery
+ * filters, friend tags.
  */
-export function Chip({ label, active = false, static: isStatic = false, ...rest }: ChipProps) {
+export function Chip({ label, active = false, static: isStatic = false, disabled = false, ...rest }: ChipProps) {
   const body = (
-    <Text variant="small" color={active ? 'onActive' : 'textMuted'}>
+    <Text variant="small" color={disabled ? 'textDisabled' : active ? 'onActive' : 'textMuted'}>
       {label}
     </Text>
   );
@@ -30,8 +33,14 @@ export function Chip({ label, active = false, static: isStatic = false, ...rest 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      style={({ pressed }) => [styles.chip, active && styles.active, pressed && styles.pressed]}
+      accessibilityState={{ selected: active, disabled }}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.chip,
+        active && styles.active,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
       {...rest}
     >
       {body}
@@ -52,6 +61,10 @@ const styles = StyleSheet.create({
   active: {
     backgroundColor: colors.bgActive,
     borderColor: colors.bgActive,
+  },
+  disabled: {
+    backgroundColor: colors.bgSubtle,
+    borderColor: colors.divider,
   },
   pressed: { opacity: 0.6 },
 });

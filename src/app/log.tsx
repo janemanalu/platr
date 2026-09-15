@@ -6,16 +6,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RatingSlider } from '@/components/log/RatingSlider';
 import { PlaceSearchField } from '@/components/restaurant/PlaceSearchField';
+import { RestaurantPreviewCard } from '@/components/restaurant/RestaurantPreviewCard';
 import { Button, Chip, SearchField, Text } from '@/components/ui';
 import { useFollowing } from '@/hooks/useFollowing';
 import { useRestaurant } from '@/hooks/useRestaurants';
 import { useSaveVisit } from '@/hooks/useSaveVisit';
 import { useTags } from '@/hooks/useTags';
 import { useUserId } from '@/lib/auth';
-import type { LogStatus } from '@/lib/database.types';
+import type { LogStatus, Restaurant } from '@/lib/database.types';
 import type { PlaceDetails } from '@/lib/googlePlaces';
 import { goBack } from '@/lib/nav';
 import { upsertRestaurantFromPlace } from '@/lib/restaurants';
+import { groupByCategory } from '@/lib/tags';
 import { borderWidth, colors, fontFamily, space, type as typeScale } from '@/theme';
 
 const STATUSES: { key: LogStatus; label: string }[] = [
@@ -28,6 +30,8 @@ const STATUSES: { key: LogStatus; label: string }[] = [
 /** Statuses that imply an actual visit — the only ones a rating makes sense for. */
 const RATED_STATUSES: LogStatus[] = ['visited', 'go_to'];
 
+const MAX_TAGS = 5;
+
 export default function LogAVisit() {
   const router = useRouter();
   const userId = useUserId();
@@ -38,7 +42,8 @@ export default function LogAVisit() {
   const saveVisit = useSaveVisit();
 
   const [restaurantQuery, setRestaurantQuery] = useState('');
-  const [resolvedRestaurantId, setResolvedRestaurantId] = useState<string | null>(prefilledId ?? null);
+  const [resolvedRestaurant, setResolvedRestaurant] = useState<Restaurant | null>(null);
+  const resolvedRestaurantId = resolvedRestaurant?.id ?? null;
   const [linkingPlace, setLinkingPlace] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [food, setFood] = useState(7);
@@ -52,13 +57,16 @@ export default function LogAVisit() {
   const [suggestion, setSuggestion] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Fill in the restaurant name once it resolves (deep-linked from Restaurant Detail).
+  // Fill in the restaurant name + preview once it resolves (deep-linked from Restaurant Detail).
   useEffect(() => {
     if (prefilledRestaurant.data && !restaurantQuery) {
       setRestaurantQuery(prefilledRestaurant.data.name);
+      setResolvedRestaurant(prefilledRestaurant.data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledRestaurant.data]);
+
+  const tagGroups = useMemo(() => groupByCategory(allTags.data ?? []), [allTags.data]);
 
   const friendMatches = useMemo(() => {
     const q = friendQuery.trim().toLowerCase();
@@ -72,12 +80,12 @@ export default function LogAVisit() {
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
   async function handleSelectPlace(details: PlaceDetails) {
-    setResolvedRestaurantId(null);
+    setResolvedRestaurant(null);
     setPlaceError(null);
     setLinkingPlace(true);
     try {
       const restaurant = await upsertRestaurantFromPlace(details);
-      setResolvedRestaurantId(restaurant.id);
+      setResolvedRestaurant(restaurant);
     } catch (e) {
       setPlaceError(e instanceof Error ? e.message : 'Could not save this place');
     } finally {
@@ -129,7 +137,7 @@ export default function LogAVisit() {
               value={restaurantQuery}
               onChangeText={(t) => {
                 setRestaurantQuery(t);
-                setResolvedRestaurantId(null);
+                setResolvedRestaurant(null);
                 setPlaceError(null);
               }}
               onSelect={handleSelectPlace}
@@ -138,10 +146,15 @@ export default function LogAVisit() {
               <Text variant="caption" color="textFaint">
                 Adding to Platr…
               </Text>
-            ) : resolvedRestaurantId ? (
-              <Text variant="caption" color="textFaint">
-                ✓ Linked
-              </Text>
+            ) : resolvedRestaurant ? (
+              <RestaurantPreviewCard
+                name={resolvedRestaurant.name}
+                cuisine={resolvedRestaurant.cuisine}
+                area={resolvedRestaurant.area}
+                city={resolvedRestaurant.city}
+                priceLevel={resolvedRestaurant.price_level}
+                photoUri={resolvedRestaurant.cover_photo_url}
+              />
             ) : placeError ? (
               <Text variant="caption" color="textBody">
                 {placeError}
@@ -242,7 +255,10 @@ export default function LogAVisit() {
             ) : null}
           </Field>
 
-          <Field label="Tags" hint="Fixed list — no custom tags">
+          <Field
+            label={`Tags (${tagIds.length}/${MAX_TAGS} selected)`}
+            hint="Fixed list — no custom tags"
+          >
             <Pressable onPress={() => setTagsOpen((o) => !o)} style={styles.select}>
               <Text variant="body" color={tagIds.length ? 'textBody' : 'textDisabled'}>
                 {tagIds.length ? `${tagIds.length} selected` : 'Select tags…'}
@@ -250,14 +266,28 @@ export default function LogAVisit() {
               <Ionicons name={tagsOpen ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textDisabled} />
             </Pressable>
             {tagsOpen ? (
-              <View style={styles.chipWrap}>
-                {(allTags.data ?? []).map((t) => (
-                  <Chip
-                    key={t.id}
-                    label={t.label}
-                    active={tagIds.includes(t.id)}
-                    onPress={() => toggle(tagIds, setTagIds, t.id)}
-                  />
+              <View style={styles.tagGroups}>
+                {tagGroups.map((g) => (
+                  <View key={g.category} style={styles.tagGroup}>
+                    <Text variant="sectionLabel" color="textLabel">
+                      {g.label}
+                    </Text>
+                    <View style={styles.chipWrap}>
+                      {g.items.map((t) => {
+                        const active = tagIds.includes(t.id);
+                        const limitReached = !active && tagIds.length >= MAX_TAGS;
+                        return (
+                          <Chip
+                            key={t.id}
+                            label={t.label}
+                            active={active}
+                            disabled={limitReached}
+                            onPress={() => toggle(tagIds, setTagIds, t.id)}
+                          />
+                        );
+                      })}
+                    </View>
+                  </View>
                 ))}
               </View>
             ) : tagIds.length ? (
@@ -384,6 +414,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
+  tagGroups: { gap: space[3] },
+  tagGroup: { gap: space[2] },
 
   save: { marginTop: space[2] },
 });
