@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
+import { reviewPhotoUrl } from '@/lib/photos';
 import { supabase } from '@/lib/supabase';
 
 export type RestaurantReview = {
@@ -11,6 +12,7 @@ export type RestaurantReview = {
   visited_on: string | null;
   created_at: string;
   reviewer: { display_name: string; username: string };
+  photoUrl: string | null;
 };
 
 /** Every review for one restaurant, most recently *visited* first. */
@@ -22,13 +24,19 @@ export function useRestaurantReviews(restaurantId: string | undefined) {
       const { data, error } = await supabase
         .from('reviews')
         .select(
-          'id, food_rating, vibe_rating, notes, visited_on, created_at, reviewer:profiles!reviews_user_id_fkey(display_name, username)',
+          'id, food_rating, vibe_rating, notes, visited_on, created_at, reviewer:profiles!reviews_user_id_fkey(display_name, username), photos:review_photos(storage_path, position)',
         )
         .eq('restaurant_id', restaurantId!)
         .order('visited_on', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as RestaurantReview[];
+      type Row = Omit<RestaurantReview, 'photoUrl'> & { photos: { storage_path: string; position: number }[] };
+      return (data as unknown as Row[]).map(({ photos, ...row }) => ({
+        ...row,
+        photoUrl: photos.length
+          ? reviewPhotoUrl([...photos].sort((a, b) => a.position - b.position)[0].storage_path)
+          : null,
+      }));
     },
   });
 }

@@ -112,6 +112,7 @@ export default function Social() {
                       vibe={item.vibe_rating ?? 0}
                       featured={featured}
                       previewText={item.notes ?? undefined}
+                      photoUrl={item.photoUrl}
                       onPress={() => router.push(`/post/${item.id}`)}
                       onOpenRestaurant={() => router.push(`/restaurant/${item.restaurant.id}`)}
                     />

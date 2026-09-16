@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Thumbnail } from '@/components/ui';
 
 export type GalleryGridProps = {
-  photos: { id: string; logId: string }[];
+  photos: { id: string; logId: string; uri?: string | null }[];
   /** Cap the number shown (e.g. 6 for a profile preview). */
   limit?: number;
   columns?: number;
@@ -19,7 +19,7 @@ export function GalleryGrid({ photos, limit, columns = 3, onOpen }: GalleryGridP
       {shown.map((p) => (
         <View key={p.id} style={[styles.cell, { width }]}>
           <Pressable onPress={() => onOpen(p.logId)}>
-            <Thumbnail uri={null} fill aspectRatio={1} />
+            <Thumbnail uri={p.uri} fill aspectRatio={1} />
           </Pressable>
         </View>
       ))}

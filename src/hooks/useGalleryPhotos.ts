@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { reviewPhotoUrl } from '@/lib/photos';
 import { supabase } from '@/lib/supabase';
 
-export type GalleryPhoto = { id: string; storagePath: string; logId: string };
+export type GalleryPhoto = { id: string; storagePath: string; logId: string; uri: string };
 
 /** Every photo across a user's reviews — the Profile/User Profile gallery grid. */
 export function useGalleryPhotos(userId: string | undefined) {
@@ -20,6 +21,7 @@ export function useGalleryPhotos(userId: string | undefined) {
         id: row.id,
         storagePath: row.storage_path,
         logId: row.review.log_id,
+        uri: reviewPhotoUrl(row.storage_path),
       }));
     },
   });

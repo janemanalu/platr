@@ -141,7 +141,7 @@ export default function Profile() {
           {gallery.data && gallery.data.length > 0 ? (
             <>
               <GalleryGrid
-                photos={gallery.data.map((p) => ({ id: p.id, logId: p.logId }))}
+                photos={gallery.data.map((p) => ({ id: p.id, logId: p.logId, uri: p.uri }))}
                 limit={6}
                 onOpen={(logId) => router.push(`/restaurant/${logId}`)}
               />

@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RatingSlider } from '@/components/log/RatingSlider';
 import { PlaceSearchField } from '@/components/restaurant/PlaceSearchField';
 import { RestaurantPreviewCard } from '@/components/restaurant/RestaurantPreviewCard';
-import { Button, Chip, SearchField, Text } from '@/components/ui';
+import { Button, Chip, SearchField, Text, Thumbnail } from '@/components/ui';
 import { useFollowing } from '@/hooks/useFollowing';
 import { useRestaurant } from '@/hooks/useRestaurants';
 import { useSaveVisit } from '@/hooks/useSaveVisit';
@@ -49,6 +50,8 @@ export default function LogAVisit() {
   const [food, setFood] = useState(7);
   const [vibe, setVibe] = useState(6.5);
   const [notes, setNotes] = useState('');
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [status, setStatus] = useState<LogStatus>('visited');
   const [friendQuery, setFriendQuery] = useState('');
   const [taggedFriends, setTaggedFriends] = useState<string[]>([]);
@@ -93,6 +96,41 @@ export default function LogAVisit() {
     }
   }
 
+  async function pickFromLibrary() {
+    setPhotoError(null);
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      setPhotoError('Enable photo access in Settings to attach a photo.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
+  }
+
+  async function pickFromCamera() {
+    setPhotoError(null);
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) {
+      setPhotoError('Enable camera access in Settings to take a photo.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.7 });
+    if (!result.canceled && result.assets[0]) setPhotoUri(result.assets[0].uri);
+  }
+
+  function handlePickPhoto() {
+    Alert.alert('Add a photo', undefined, [
+      { text: 'Take Photo', onPress: pickFromCamera },
+      { text: 'Choose from Library', onPress: pickFromLibrary },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  }
+
   function handleSave() {
     if (!resolvedRestaurantId) {
       setSaveError('Pick a restaurant first.');
@@ -107,6 +145,7 @@ export default function LogAVisit() {
         foodRating: rated ? food : undefined,
         vibeRating: rated ? vibe : undefined,
         notes,
+        photoUri,
         tagIds,
         friendIds: taggedFriends,
         suggestion,
@@ -186,12 +225,31 @@ export default function LogAVisit() {
           </Field>
 
           <Field label="Photo">
-            <Pressable style={styles.upload}>
-              <Ionicons name="arrow-up" size={18} color={colors.textDisabled} />
-              <Text variant="caption" color="textDisabled">
-                Tap to upload
+            {photoUri ? (
+              <View style={styles.photoPreview}>
+                <Thumbnail uri={photoUri} fill aspectRatio={4 / 3} />
+                <View style={styles.photoActions}>
+                  <Text variant="link" color="textFaint" onPress={handlePickPhoto}>
+                    Change photo
+                  </Text>
+                  <Text variant="link" color="textFaint" onPress={() => setPhotoUri(null)}>
+                    Remove
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <Pressable style={styles.upload} onPress={handlePickPhoto}>
+                <Ionicons name="arrow-up" size={18} color={colors.textDisabled} />
+                <Text variant="caption" color="textDisabled">
+                  Tap to upload
+                </Text>
+              </Pressable>
+            )}
+            {photoError ? (
+              <Text variant="caption" color="textBody">
+                {photoError}
               </Text>
-            </Pressable>
+            ) : null}
           </Field>
 
           <Field label="Status">
@@ -384,6 +442,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space[1],
   },
+  photoPreview: { gap: space[2] },
+  photoActions: { flexDirection: 'row', gap: space[3] },
 
   statusGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space[2] },
   statusBtn: {

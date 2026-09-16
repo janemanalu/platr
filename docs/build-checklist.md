@@ -81,6 +81,17 @@ Living list of what's done and what's left. Updated as the build progresses.
       review_friend_tags, review_suggestions), then cleaned up. Screen itself
       verified rendering correctly with a real restaurant prefilled and
       "✓ Linked" showing.
+- [x] Log a Visit spec update — restaurant preview card, categorized tags,
+      5-tag limit: linking a restaurant now shows a compact `RestaurantPreviewCard`
+      (thumbnail, name, cuisine · area/city, price) instead of plain "✓ Linked"
+      text; the tag picker is grouped into the same 5 labeled categories as
+      Restaurant Detail (Cuisine/Occasion/Vibe/Price Point/Dietary, driven by
+      each tag's real `category` column via a shared `groupByCategory()` in
+      `src/lib/tags.ts`, also now used by `useRestaurantTagGroups`); tag
+      selection is capped at 5 total with a live "Tags (N/5 selected)" counter
+      and unselected chips grey out (new `Chip` `disabled` prop) once the cap
+      is hit. Verified in the simulator, including a temporary forced-5-tags
+      test to confirm the disabled state across all categories.
 - [x] Dev auto sign-in — `EXPO_PUBLIC_DEV_SKIP_AUTH` now signs in for real as
       `EXPO_PUBLIC_DEV_DEMO_EMAIL`/`PASSWORD` (defaults to seeded Jordan)
       instead of a UI-only bypass, since per-user data needs a real `auth.uid()`
@@ -90,6 +101,25 @@ Living list of what's done and what's left. Updated as the build progresses.
       Detail/Profile/Social/Log a Visit — still used by Find for Me, Other
       User Profile, List Detail, Settings, Post view (not in this pass's scope)
 - [ ] Regenerate `database.types.ts` from CLI once a Supabase login/token is set up
+- [x] **Photo upload pipeline is live end-to-end** — Log a Visit's Photo field
+      uses `expo-image-picker` (camera or library, via a native Alert chooser)
+      instead of a dead "Tap to upload" box; on Save Entry the picked file is
+      read with `expo-file-system`'s `File.arrayBuffer()` and uploaded to the
+      already-correctly-configured `review-photos` bucket under the uploader's
+      own `<uid>/<review_id>/` prefix, then recorded in `review_photos` (see
+      `src/lib/photos.ts`, wired into `useSaveVisit`). Picking a photo (with no
+      rating/notes) now also counts as "has review content," so a bare photo
+      still creates a review to attach it to. Verified the bucket's RLS
+      directly (own-folder writes succeed, other-uid writes correctly
+      rejected, public read works unauthenticated) and the full write→display
+      round trip via a real inserted `review_photos` row. Real photos (not the
+      `[]`/gray placeholder) now render on Restaurant Detail's Food/Vibe/Tales
+      cards and full review list, Social Feed's `FeedTile`s, and Profile's
+      Gallery grid — each falls back to the existing placeholder when a review
+      has no photo. Still not wired: Other User Profile / List Detail's
+      gallery (still on `placeholder.ts`, out of this pass) and no
+      multi-photo-per-review UI (schema supports it via `position`; Log a
+      Visit only picks one for now).
 
 ## Social features — tables exist, UI not built
 
@@ -169,7 +199,4 @@ Living list of what's done and what's left. Updated as the build progresses.
 - [ ] Visual design pass — brand color, custom fonts, real imagery, polish
 - [ ] Map rendering (real map SDK) for Home "Food Map" + Discovery map
       (currently gray placeholder boxes with pins)
-- [ ] Log a Visit → actually insert log + review + children on Save
-- [ ] Restaurant search in Log a Visit / Discovery wired to real data
-- [ ] Photo upload pipeline to `review-photos` bucket
 - [ ] Push notifications, onboarding, empty states

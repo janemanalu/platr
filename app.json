@@ -32,6 +32,13 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Platr uses your photos so you can attach one to a visit you're logging.",
+          "cameraPermission": "Platr uses your camera so you can photograph a dish or place while logging a visit."
+        }
       ]
     ],
     "experiments": {

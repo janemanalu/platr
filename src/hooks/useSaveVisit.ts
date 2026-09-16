@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useUserId } from '@/lib/auth';
+import { uploadReviewPhoto } from '@/lib/photos';
 import { supabase } from '@/lib/supabase';
 import type { LogStatus } from '@/lib/database.types';
 
@@ -13,6 +14,8 @@ export type SaveVisitInput = {
   tagIds?: string[];
   friendIds?: string[];
   suggestion?: string;
+  /** A locally-picked `file://` uri, uploaded to Storage as part of the save. */
+  photoUri?: string | null;
 };
 
 /**
@@ -41,7 +44,8 @@ export function useSaveVisit() {
       if (logError) throw logError;
 
       let reviewId: string | null = null;
-      const hasReviewContent = input.foodRating != null || input.vibeRating != null || !!input.notes?.trim();
+      const hasReviewContent =
+        input.foodRating != null || input.vibeRating != null || !!input.notes?.trim() || !!input.photoUri;
 
       if (hasReviewContent) {
         const { data: review, error: reviewError } = await supabase
@@ -70,6 +74,10 @@ export function useSaveVisit() {
             .from('review_friend_tags')
             .insert(input.friendIds.map((friend_id) => ({ review_id: reviewId!, friend_id })));
           if (error) throw error;
+        }
+
+        if (input.photoUri) {
+          await uploadReviewPhoto(userId, reviewId!, input.photoUri);
         }
       }
 
@@ -100,6 +108,7 @@ export function useSaveVisit() {
       queryClient.invalidateQueries({ queryKey: ['follow-stats', userId] });
       queryClient.invalidateQueries({ queryKey: ['my-last-review', userId] });
       queryClient.invalidateQueries({ queryKey: ['status-privacy', userId] });
+      queryClient.invalidateQueries({ queryKey: ['gallery-photos', userId] });
     },
   });
 }

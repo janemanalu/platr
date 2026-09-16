@@ -11,6 +11,7 @@ export type FeedTileProps = {
   /** Full-width "FEATURED" card with a preview line. */
   featured?: boolean;
   previewText?: string;
+  photoUrl?: string | null;
   onPress?: () => void;
   onOpenRestaurant?: () => void;
 };
@@ -23,6 +24,7 @@ export function FeedTile({
   vibe,
   featured = false,
   previewText,
+  photoUrl,
   onPress,
   onOpenRestaurant,
 }: FeedTileProps) {
@@ -36,7 +38,7 @@ export function FeedTile({
           Featured
         </Text>
       ) : null}
-      <Thumbnail uri={null} fill aspectRatio={featured ? 1.9 : 1.3} />
+      <Thumbnail uri={photoUrl} fill aspectRatio={featured ? 1.9 : 1.3} />
       <View style={styles.meta}>
         <Text variant="caption" color="textDisabled">
           ◦ {reviewer}

@@ -107,6 +107,7 @@ export default function RestaurantDetail() {
                         score={c.score ?? undefined}
                         previewText={c.sorted[0].notes ?? ''}
                         by={c.sorted[0].reviewer.display_name}
+                        photoUrl={c.sorted[0].photoUrl}
                         onSeeAll={() => router.push(`/reviews/${r.id}?category=${c.key}`)}
                       />
                     ))}

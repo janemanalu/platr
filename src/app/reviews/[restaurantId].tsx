@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Card, Text } from '@/components/ui';
+import { Card, Text, Thumbnail } from '@/components/ui';
 import { useRestaurant } from '@/hooks/useRestaurants';
 import { categoryLabel, useReviewCategories } from '@/hooks/useRestaurantReviews';
 import { goBack } from '@/lib/nav';
@@ -51,6 +51,7 @@ export default function CategoryReviews() {
           <View style={styles.list}>
             {(cat?.sorted ?? []).map((r) => (
               <Card key={r.id} padding={3} style={styles.review}>
+                {r.photoUrl ? <Thumbnail uri={r.photoUrl} fill aspectRatio={16 / 9} /> : null}
                 <View style={styles.reviewHead}>
                   <Text variant="bodyStrong" color="textStrong">
                     {r.reviewer.display_name}

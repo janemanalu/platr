@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { reviewPhotoUrl } from '@/lib/photos';
 import { supabase } from '@/lib/supabase';
 import type { Restaurant } from '@/lib/database.types';
 
@@ -11,20 +12,27 @@ export type FeedItem = {
   created_at: string;
   restaurant: Restaurant;
   reviewer: { id: string; display_name: string; username: string };
+  photoUrl: string | null;
 };
 
+const REVIEW_SELECT =
+  'id, food_rating, vibe_rating, notes, created_at, restaurant:restaurants(*), reviewer:profiles!reviews_user_id_fkey(id, display_name, username), photos:review_photos(storage_path, position)';
+
+type ReviewRow = Omit<FeedItem, 'photoUrl'> & { photos: { storage_path: string; position: number }[] };
+
+function attachPhotoUrl({ photos, ...row }: ReviewRow): FeedItem {
+  return {
+    ...row,
+    photoUrl: photos.length ? reviewPhotoUrl([...photos].sort((a, b) => a.position - b.position)[0].storage_path) : null,
+  };
+}
+
 async function fetchReviews(userIds?: string[]) {
-  let query = supabase
-    .from('reviews')
-    .select(
-      'id, food_rating, vibe_rating, notes, created_at, restaurant:restaurants(*), reviewer:profiles!reviews_user_id_fkey(id, display_name, username)',
-    )
-    .order('created_at', { ascending: false })
-    .limit(30);
+  let query = supabase.from('reviews').select(REVIEW_SELECT).order('created_at', { ascending: false }).limit(30);
   if (userIds) query = query.in('user_id', userIds);
   const { data, error } = await query;
   if (error) throw error;
-  return (data ?? []) as unknown as FeedItem[];
+  return ((data ?? []) as unknown as ReviewRow[]).map(attachPhotoUrl);
 }
 
 /** Reviews from the people `userId` follows — the "Friends" tab. */
@@ -69,15 +77,9 @@ export function useReview(reviewId: string | undefined) {
     queryKey: ['review', reviewId],
     enabled: !!reviewId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select(
-          'id, food_rating, vibe_rating, notes, created_at, restaurant:restaurants(*), reviewer:profiles!reviews_user_id_fkey(id, display_name, username)',
-        )
-        .eq('id', reviewId!)
-        .single();
+      const { data, error } = await supabase.from('reviews').select(REVIEW_SELECT).eq('id', reviewId!).single();
       if (error) throw error;
-      return data as unknown as FeedItem;
+      return attachPhotoUrl(data as unknown as ReviewRow);
     },
   });
 }
