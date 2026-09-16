@@ -1,8 +1,10 @@
 /**
- * Google Places API (New) client — Autocomplete + Place Details.
- * https://developers.google.com/maps/documentation/places/web-service/op-overview
+ * Google Places API (New) client — Autocomplete, Text Search, and Place
+ * Details. https://developers.google.com/maps/documentation/places/web-service/op-overview
  *
  * Needs EXPO_PUBLIC_GOOGLE_PLACES_API_KEY with "Places API (New)" enabled.
+ * All three calls here live under that one API — no extra Google Cloud
+ * scopes/products to enable beyond what Log a Visit's search already needed.
  */
 
 const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
@@ -80,6 +82,12 @@ export type PlaceDetails = {
   priceLevel: 1 | 2 | 3 | 4 | null;
   websiteUrl?: string;
   coverPhotoUrl?: string;
+  /** e.g. "Italian restaurant" — Google's own type label, used as our `cuisine`. */
+  cuisine?: string;
+  /** Google's short editorial blurb, used as our `about` when we don't have one. */
+  about?: string;
+  rating?: number;
+  userRatingCount?: number;
 };
 
 const PRICE_LEVEL_MAP: Record<string, 1 | 2 | 3 | 4> = {
@@ -92,52 +100,100 @@ const PRICE_LEVEL_MAP: Record<string, 1 | 2 | 3 | 4> = {
 
 type AddressComponent = { longText?: string; types?: string[] };
 
+const DETAIL_FIELDS = [
+  'id',
+  'displayName',
+  'formattedAddress',
+  'addressComponents',
+  'location',
+  'priceLevel',
+  'websiteUri',
+  'photos',
+  'primaryTypeDisplayName',
+  'editorialSummary',
+  'rating',
+  'userRatingCount',
+];
+
+/** Normalizes one raw Places API "Place" resource (from Details or Text Search) into what `restaurants` needs. */
+function normalizePlace(p: Record<string, any>): PlaceDetails {
+  const components: AddressComponent[] = p.addressComponents ?? [];
+  const find = (...types: string[]) => components.find((c) => c.types?.some((t) => types.includes(t)))?.longText;
+
+  const area = find('sublocality', 'sublocality_level_1', 'neighborhood');
+  const city = find('locality', 'administrative_area_level_2');
+  const photoName: string | undefined = p.photos?.[0]?.name;
+
+  return {
+    googlePlaceId: p.id,
+    name: p.displayName?.text ?? '',
+    address: p.formattedAddress,
+    area,
+    city,
+    lat: p.location?.latitude,
+    lng: p.location?.longitude,
+    priceLevel: p.priceLevel ? (PRICE_LEVEL_MAP[p.priceLevel] ?? null) : null,
+    websiteUrl: p.websiteUri,
+    coverPhotoUrl: photoName ? `${BASE}/${photoName}/media?maxWidthPx=800&key=${API_KEY}` : undefined,
+    cuisine: p.primaryTypeDisplayName?.text,
+    about: p.editorialSummary?.text,
+    rating: p.rating,
+    userRatingCount: p.userRatingCount,
+  };
+}
+
 /** Full details for one place, normalized to what `restaurants` needs. */
 export async function getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
   if (!API_KEY) return null;
 
-  const fieldMask = [
-    'id',
-    'displayName',
-    'formattedAddress',
-    'addressComponents',
-    'location',
-    'priceLevel',
-    'websiteUri',
-    'photos',
-  ].join(',');
-
   try {
     const res = await fetch(`${BASE}/places/${placeId}`, {
-      headers: { 'X-Goog-Api-Key': API_KEY, 'X-Goog-FieldMask': fieldMask },
+      headers: { 'X-Goog-Api-Key': API_KEY, 'X-Goog-FieldMask': DETAIL_FIELDS.join(',') },
     });
     if (!res.ok) {
       if (__DEV__) console.warn('[googlePlaces] details failed', res.status, await res.text());
       return null;
     }
-    const p = await res.json();
-    const components: AddressComponent[] = p.addressComponents ?? [];
-    const find = (...types: string[]) =>
-      components.find((c) => c.types?.some((t) => types.includes(t)))?.longText;
-
-    const area = find('sublocality', 'sublocality_level_1', 'neighborhood');
-    const city = find('locality', 'administrative_area_level_2');
-    const photoName: string | undefined = p.photos?.[0]?.name;
-
-    return {
-      googlePlaceId: p.id,
-      name: p.displayName?.text ?? '',
-      address: p.formattedAddress,
-      area,
-      city,
-      lat: p.location?.latitude,
-      lng: p.location?.longitude,
-      priceLevel: p.priceLevel ? (PRICE_LEVEL_MAP[p.priceLevel] ?? null) : null,
-      websiteUrl: p.websiteUri,
-      coverPhotoUrl: photoName ? `${BASE}/${photoName}/media?maxWidthPx=800&key=${API_KEY}` : undefined,
-    };
+    return normalizePlace(await res.json());
   } catch (e) {
     if (__DEV__) console.warn('[googlePlaces] details error', e);
     return null;
+  }
+}
+
+/**
+ * Free-text restaurant search (Places Text Search) — used by Discovery's
+ * search bar to surface real places beyond our own catalog, with full-enough
+ * details (address, location, price, photo) to add one straight to
+ * `restaurants` on selection, no second Details call needed.
+ */
+export async function searchRestaurantsText(query: string, bias?: { lat: number; lng: number }): Promise<PlaceDetails[]> {
+  if (!API_KEY || !query.trim()) return [];
+
+  const body: Record<string, unknown> = { textQuery: query, includedType: 'restaurant', languageCode: 'en', pageSize: 10 };
+  if (bias) {
+    body.locationBias = { circle: { center: { latitude: bias.lat, longitude: bias.lng }, radius: 20000 } };
+  }
+
+  try {
+    const res = await fetch(`${BASE}/places:searchText`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': API_KEY,
+        'X-Goog-FieldMask': DETAIL_FIELDS.map((f) => `places.${f}`).join(','),
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      if (__DEV__) console.warn('[googlePlaces] text search failed', res.status, await res.text());
+      return [];
+    }
+    const json = await res.json();
+    const places: Record<string, any>[] = json.places ?? [];
+    return places.map(normalizePlace).filter((p) => p.googlePlaceId && p.name);
+  } catch (e) {
+    if (__DEV__) console.warn('[googlePlaces] text search error', e);
+    return [];
   }
 }

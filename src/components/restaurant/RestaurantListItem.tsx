@@ -46,7 +46,7 @@ export function RestaurantListItem({
           ) : null}
         </View>
         <Text variant="small" color="textFaint" numberOfLines={1}>
-          {cuisine} · {area}, {city}
+          {[cuisine, [area, city].filter(Boolean).join(', ')].filter(Boolean).join(' · ')}
         </Text>
         {tags.length > 0 ? (
           <View style={styles.tags}>

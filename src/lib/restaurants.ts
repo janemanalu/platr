@@ -21,11 +21,13 @@ export async function upsertRestaurantFromPlace(details: PlaceDetails): Promise<
     .insert({
       google_place_id: details.googlePlaceId,
       name: details.name,
+      cuisine: details.cuisine ?? null,
       area: details.area ?? null,
       city: details.city ?? null,
       address: details.address ?? null,
       lat: details.lat ?? null,
       lng: details.lng ?? null,
+      about: details.about ?? null,
       price_level: details.priceLevel,
       website_url: details.websiteUrl ?? null,
       cover_photo_url: details.coverPhotoUrl ?? null,

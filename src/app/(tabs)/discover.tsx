@@ -4,10 +4,14 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { RestaurantMap } from '@/components/map/RestaurantMap';
 import { RestaurantListItem } from '@/components/restaurant/RestaurantListItem';
 import { Chip, SearchField, SegmentedToggle, Text } from '@/components/ui';
-import { useRestaurants } from '@/hooks/useRestaurants';
+import { useLivePlaceSearch } from '@/hooks/useLivePlaceSearch';
 import { useMyProfile } from '@/hooks/useProfile';
+import { useRestaurants } from '@/hooks/useRestaurants';
+import { JAKARTA_CENTER } from '@/lib/geo';
+import { upsertRestaurantFromPlace } from '@/lib/restaurants';
 import { borderWidth, colors, gray, space } from '@/theme';
 
 const VIEWS = ['Map', 'List'] as const;
@@ -25,6 +29,8 @@ export default function Discover() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [active, setActive] = useState<string[]>([]);
   const [query, setQuery] = useState('');
+  const [linkingPlaceId, setLinkingPlaceId] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   const toggleFilter = (f: string) =>
     setActive((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
@@ -43,23 +49,40 @@ export default function Discover() {
     return list;
   }, [restaurants, query, active]);
 
+  // Real places from Google, for whatever's typed — not limited to what's
+  // already in our catalog. Same find-or-create pattern as Log a Visit.
+  const knownPlaceIds = useMemo(
+    () => new Set((restaurants ?? []).map((r) => r.google_place_id).filter((id): id is string => !!id)),
+    [restaurants],
+  );
+  const liveSearch = useLivePlaceSearch(query, JAKARTA_CENTER);
+  const liveResults = useMemo(
+    () => (liveSearch.data ?? []).filter((p) => !knownPlaceIds.has(p.googlePlaceId)),
+    [liveSearch.data, knownPlaceIds],
+  );
+
+  async function handleSelectLivePlace(place: (typeof liveResults)[number]) {
+    setLinkError(null);
+    setLinkingPlaceId(place.googlePlaceId);
+    try {
+      const restaurant = await upsertRestaurantFromPlace(place);
+      router.push(`/restaurant/${restaurant.id}`);
+    } catch (e) {
+      setLinkError(e instanceof Error ? e.message : 'Could not add this place');
+    } finally {
+      setLinkingPlaceId(null);
+    }
+  }
+
   const areaLabel = profile.data?.area ? `${profile.data.area} area` : 'nearby';
 
-  const pins = useMemo(() => {
-    const points = filtered.filter((r) => r.lat != null && r.lng != null);
-    if (points.length === 0) return [];
-    const lats = points.map((p) => p.lat!);
-    const lngs = points.map((p) => p.lng!);
-    const [minLat, maxLat] = [Math.min(...lats), Math.max(...lats)];
-    const [minLng, maxLng] = [Math.min(...lngs), Math.max(...lngs)];
-    const norm = (v: number, min: number, max: number) => (max === min ? 0.5 : (v - min) / (max - min));
-    return points.map((r) => ({
-      id: r.id,
-      label: initials(r.name),
-      x: `${10 + norm(r.lng!, minLng, maxLng) * 80}%`,
-      y: `${10 + (1 - norm(r.lat!, minLat, maxLat)) * 80}%`,
-    }));
-  }, [filtered]);
+  const pins = useMemo(
+    () =>
+      filtered
+        .filter((r) => r.lat != null && r.lng != null)
+        .map((r) => ({ id: r.id, label: initials(r.name), lat: r.lat!, lng: r.lng! })),
+    [filtered],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -134,24 +157,49 @@ export default function Discover() {
               onPress={() => router.push(`/restaurant/${r.id}`)}
             />
           ))}
+
+          {query.trim().length >= 2 ? (
+            <View style={styles.liveSection}>
+              <Text variant="sectionLabel" color="textLabel">
+                More from Google
+              </Text>
+              {liveSearch.isFetching ? (
+                <ActivityIndicator color={colors.textFaint} style={styles.liveLoading} />
+              ) : liveResults.length === 0 ? (
+                <Text variant="caption" color="textDisabled">
+                  No other real places found for "{query.trim()}".
+                </Text>
+              ) : (
+                liveResults.map((p) => (
+                  <RestaurantListItem
+                    key={p.googlePlaceId}
+                    name={p.name}
+                    cuisine={p.cuisine ?? ''}
+                    area={p.area ?? ''}
+                    city={p.city ?? ''}
+                    priceLevel={p.priceLevel}
+                    onPress={() => {
+                      if (!linkingPlaceId) handleSelectLivePlace(p);
+                    }}
+                  />
+                ))
+              )}
+              {linkingPlaceId ? (
+                <Text variant="caption" color="textFaint">
+                  Adding to Platr…
+                </Text>
+              ) : linkError ? (
+                <Text variant="caption" color="textBody">
+                  {linkError}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
         </ScrollView>
       ) : (
         <View style={styles.mapWrap}>
           <View style={styles.map}>
-            {pins.map((pin) => (
-              <Pressable
-                key={pin.id}
-                onPress={() => router.push(`/restaurant/${pin.id}`)}
-                style={[styles.pin, { left: pin.x, top: pin.y } as never]}
-              >
-                <Text variant="micro" color="onActive">
-                  {pin.label}
-                </Text>
-              </Pressable>
-            ))}
-            <Text variant="micro" color="textFaint" style={styles.mapNote}>
-              Interactive map · tap pins
-            </Text>
+            <RestaurantMap pins={pins} onPressPin={(id) => router.push(`/restaurant/${id}`)} />
           </View>
           <View style={styles.mapBar}>
             <Text variant="small" color="textFaint">
@@ -207,15 +255,10 @@ const styles = StyleSheet.create({
 
   listBg: { backgroundColor: colors.bgSubtle },
   list: { paddingHorizontal: space[4], paddingVertical: space[3], paddingBottom: space[8], gap: space[2] },
+  liveSection: { gap: space[2], paddingTop: space[3] },
+  liveLoading: { paddingVertical: space[3] },
 
   mapWrap: { flex: 1, padding: space[4], gap: space[3] },
-  map: { flex: 1, backgroundColor: gray[200], borderWidth, borderColor: colors.borderStrong },
-  pin: {
-    position: 'absolute',
-    backgroundColor: colors.textBody,
-    paddingHorizontal: space[1],
-    paddingVertical: 2,
-  },
-  mapNote: { position: 'absolute', right: space[2], bottom: space[2] },
+  map: { flex: 1, backgroundColor: gray[200], borderWidth, borderColor: colors.borderStrong, overflow: 'hidden' },
   mapBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

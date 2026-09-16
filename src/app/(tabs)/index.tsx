@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { RestaurantMap } from '@/components/map/RestaurantMap';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { RestaurantRow } from '@/components/restaurant/RestaurantRow';
 import { Card, SectionHeader, Text } from '@/components/ui';
@@ -37,23 +38,13 @@ export default function Home() {
 
   const wishlist = useMemo(() => (logs.data ?? []).filter((l) => l.status === 'wishlist'), [logs.data]);
 
-  const pins = useMemo(() => {
-    const points = (logs.data ?? [])
-      .filter((l) => (l.status === 'go_to' || l.status === 'visited') && l.restaurant.lat != null && l.restaurant.lng != null)
-      .map((l) => ({ id: l.restaurant.id, label: initials(l.restaurant.name), lat: l.restaurant.lat!, lng: l.restaurant.lng! }));
-    if (points.length === 0) return [];
-    const lats = points.map((p) => p.lat);
-    const lngs = points.map((p) => p.lng);
-    const [minLat, maxLat] = [Math.min(...lats), Math.max(...lats)];
-    const [minLng, maxLng] = [Math.min(...lngs), Math.max(...lngs)];
-    const norm = (v: number, min: number, max: number) => (max === min ? 0.5 : (v - min) / (max - min));
-    return points.map((p) => ({
-      ...p,
-      // keep pins off the edges and out of the bottom strip, where the caption sits
-      x: `${12 + norm(p.lng, minLng, maxLng) * 70}%`,
-      y: `${10 + (1 - norm(p.lat, minLat, maxLat)) * 55}%`,
-    }));
-  }, [logs.data]);
+  const pins = useMemo(
+    () =>
+      (logs.data ?? [])
+        .filter((l) => (l.status === 'go_to' || l.status === 'visited') && l.restaurant.lat != null && l.restaurant.lng != null)
+        .map((l) => ({ id: l.restaurant.id, label: initials(l.restaurant.name), lat: l.restaurant.lat!, lng: l.restaurant.lng! })),
+    [logs.data],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -127,17 +118,7 @@ export default function Home() {
             onAction={() => router.push('/discover')}
           />
           <View style={styles.map}>
-            {pins.map((pin) => (
-              <Pressable
-                key={pin.id}
-                onPress={() => openRestaurant(pin.id)}
-                style={[styles.pin, { left: pin.x, top: pin.y } as never]}
-              >
-                <Text variant="caption" color="onActive" style={styles.pinText}>
-                  {pin.label}
-                </Text>
-              </Pressable>
-            ))}
+            <RestaurantMap pins={pins} onPressPin={openRestaurant} />
             <Text variant="caption" color="textFaint" style={styles.mapCaption}>
               {pins.length ? `${pins.length} logged · tap pin for detail` : 'Log a visit to start your map'}
             </Text>
@@ -294,19 +275,15 @@ const styles = StyleSheet.create({
     backgroundColor: gray[200],
     borderWidth,
     borderColor: colors.borderStrong,
+    overflow: 'hidden',
   },
-  pin: {
+  mapCaption: {
     position: 'absolute',
-    width: 22,
-    height: 22,
-    backgroundColor: colors.textBody,
-    borderWidth: 1.5,
-    borderColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
+    left: space[2],
+    bottom: space[1],
+    backgroundColor: colors.bg,
+    paddingHorizontal: space[1],
   },
-  pinText: { fontSize: 7, lineHeight: 8 },
-  mapCaption: { position: 'absolute', left: space[2], bottom: space[1] },
 
   carousel: { gap: space[3], paddingRight: space[5] },
 });
