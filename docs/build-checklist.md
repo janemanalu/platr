@@ -148,9 +148,35 @@ Living list of what's done and what's left. Updated as the build progresses.
       key, as expected (no auth session) — inserting for real needs a signed-in
       user, i.e. dev-skip-auth won't cut it for this one. Turn off "Confirm
       email" (see Backend follow-ups) and sign up for real to test the write.
-- [ ] **Discovery's search bar** — still filters the local placeholder list
-      only, not wired to live Places search. Deliberately scoped out of this
-      pass; revisit if Discovery should support searching real-world places
+- [x] **Discovery's search bar** now also queries live Places Text Search
+      (`searchRestaurantsText`) — a "More from Google" section shows real
+      places not already in our catalog (deduped by `google_place_id`), same
+      find-or-create-and-open pattern as Log a Visit. `googlePlaces.ts` now
+      shares one `normalizePlace()` between Details and Text Search, and also
+      pulls `cuisine`/`about` from Google instead of leaving them blank.
+- [x] **Real interactive maps** (`react-native-maps`) on Home's "Your Food
+      Map" and Discovery's Map view — new `components/map/RestaurantMap`,
+      grayscale custom pin markers, auto-fits to whatever pins it's given.
+      Important: react-native-maps has native code Expo Go doesn't ship with —
+      importing it there crashes the app (confirmed by reproducing it).
+      `RestaurantMap` detects Expo Go and conditionally `require()`s the
+      library only outside it, falling back to the original static/tappable
+      pin layout (with an on-screen note) under Expo Go — so it's safe to
+      preview now and the real map "just works" once run from a custom dev
+      build, no code change needed then.
+- [ ] **Build a custom EAS dev client** to actually see/test the real map —
+      undecided, pending a call on whether it's worth setting up now.
+- [ ] Dev seed still uses invented restaurants, not real ones — mid-flight:
+      researched real, well-reviewed candidates per target neighborhood via
+      Text Search; confirming the specific list before rewriting
+      `0006_dev_seed.sql`.
+- [ ] Two stray real-restaurant rows exist in `restaurants` from ad hoc Places
+      testing this conversation (a "Kato Restaurant" in Los Angeles from
+      earlier Log a Visit testing, and a "Sate Merah Tebet" from verifying
+      Discovery's live search) — neither is part of the intentional seed.
+      Anon/authenticated role can't delete from `restaurants` (no delete RLS
+      policy, by design), so cleanup needs a direct DB connection — bundle it
+      into the seed-rewrite migration.
       beyond the curated/logged set.
 
 ## Fixes
