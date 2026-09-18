@@ -226,9 +226,44 @@ Living list of what's done and what's left. Updated as the build progresses.
 - [x] Settings "Sign out" now surfaces errors and shows a loading state instead
       of firing-and-forgetting the promise.
 
+## Four more Figma screens + empty states (2026-09-18)
+
+- [x] **All Reviews** (Figma 54:6872) — `reviews/[restaurantId].tsx` rebuilt
+      with All/Food/Vibe/Tales filter tabs (was a fixed single-category view
+      with no in-page switcher). "All" shows both Food/Vibe chips per review
+      when present rather than the wireframe's fictional one-metric-per-card.
+- [x] **Expanded Map** (54:7462) — new `map-expanded.tsx`, full-screen version
+      of Home's food map with a real "← Home" header, "N logged spots"
+      counter, and a tap-to-select bottom card (photo/name/distance/"View →").
+      Distance is real (added `expo-location` + `useDeviceLocation`), not
+      faked from a fixed point. Fixed a real bug: Home's "Expand" link went to
+      `/discover` instead of this screen.
+- [x] **Photo Viewer** (54:7894 — the spec's given id, 54:8332, was actually
+      Forgot Password; confirmed via metadata before building) — new
+      `photo-viewer.tsx`, full-screen dark photo browser, left/right nav
+      (disabled at ends), dot indicators (+overflow past 8), caption strip
+      (restaurant + date + note). Wired from Profile's Gallery tiles, which
+      previously opened Restaurant Detail instead.
+- [x] **Forgot Password** (54:8332) — new `(auth)/forgot-password.tsx`, email
+      → `resetPasswordForEmail` → confirmation state; added the link to Sign
+      In. Known limitation, not a bug: the seeded `@platr.dev` accounts can't
+      actually complete a reset since Supabase itself rejects that domain as
+      undeliverable (verified directly against the API) — real accounts with
+      real email domains work fine.
+- [x] Empty states: Discovery "No matches" + "Clear filters" when a
+      query/filter yields nothing; Social "Find people to follow" when
+      following nobody; Profile status sections get a "Log a visit" button
+      next to "None yet".
+- [x] New **User Search** screen + `useSearchProfiles` (didn't exist before —
+      needed as a real destination for the two empty-state CTAs above and
+      Social's existing "Find users" button, which was a hardcoded stub).
+      Real search by name/username, inline follow/unfollow, tap → profile.
+- [ ] Expanded Map's layout is confirmed but its live location-permission
+      prompt (real iOS system dialog) couldn't be dismissed without a tap —
+      untested end-to-end; `useDeviceLocation` degrades gracefully (no
+      distance shown) if permission is denied or unavailable.
+
 ## Later passes (explicitly deferred)
 
 - [ ] Visual design pass — brand color, custom fonts, real imagery, polish
-- [ ] Map rendering (real map SDK) for Home "Food Map" + Discovery map
-      (currently gray placeholder boxes with pins)
-- [ ] Push notifications, onboarding, empty states
+- [ ] Push notifications, onboarding
