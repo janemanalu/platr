@@ -7,7 +7,8 @@ export type GalleryGridProps = {
   /** Cap the number shown (e.g. 6 for a profile preview). */
   limit?: number;
   columns?: number;
-  onOpen: (logId: string) => void;
+  /** logId of the tapped tile, plus its index in the full (unlimited) photos list. */
+  onOpen: (logId: string, index: number) => void;
 };
 
 /** Square photo grid. Profile preview + List Detail "gallery" variant. */
@@ -16,9 +17,9 @@ export function GalleryGrid({ photos, limit, columns = 3, onOpen }: GalleryGridP
   const width = `${100 / columns}%` as const;
   return (
     <View style={styles.grid}>
-      {shown.map((p) => (
+      {shown.map((p, i) => (
         <View key={p.id} style={[styles.cell, { width }]}>
-          <Pressable onPress={() => onOpen(p.logId)}>
+          <Pressable onPress={() => onOpen(p.logId, i)}>
             <Thumbnail uri={p.uri} fill aspectRatio={1} />
           </Pressable>
         </View>

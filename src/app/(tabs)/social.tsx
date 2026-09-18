@@ -52,7 +52,7 @@ export default function Social() {
         <Text variant="h2" color="text">
           Social
         </Text>
-        <Pressable onPress={() => router.push('/user/aisha')} style={styles.findBtn}>
+        <Pressable onPress={() => router.push('/user-search')} style={styles.findBtn}>
           <Ionicons name="search" size={13} color={colors.textFaint} />
           <Text variant="caption" color="textFaint" style={styles.upper}>
             Find users
@@ -120,6 +120,13 @@ export default function Social() {
                 );
               })}
             </View>
+          ) : scope === 'Friends' && (following.data?.length ?? 0) === 0 ? (
+            <View style={styles.empty}>
+              <Text variant="caption" color="textDisabled">
+                You're not following anyone yet.
+              </Text>
+              <Button label="Find people to follow" size="sm" variant="secondary" onPress={() => router.push('/user-search')} />
+            </View>
           ) : (
             <Text variant="caption" color="textDisabled">
               {scope === 'Friends' ? 'Follow some friends to see their logs here.' : 'No activity yet.'}
@@ -158,6 +165,7 @@ const styles = StyleSheet.create({
   block: { gap: space[2] },
   stories: { gap: space[2], paddingVertical: space[1] },
   loading: { paddingVertical: space[4] },
+  empty: { gap: space[2], alignItems: 'flex-start' },
 
   share: {
     flexDirection: 'row',

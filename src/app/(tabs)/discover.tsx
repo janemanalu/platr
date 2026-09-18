@@ -145,18 +145,36 @@ export default function Discover() {
           <Text variant="sectionLabel" color="textLabel">
             {filtered.length} results · {areaLabel}
           </Text>
-          {filtered.map((r) => (
-            <RestaurantListItem
-              key={r.id}
-              name={r.name}
-              cuisine={r.cuisine ?? ''}
-              area={r.area ?? ''}
-              city={r.city ?? ''}
-              priceLevel={r.price_level as 1 | 2 | 3 | 4 | null}
-              tags={r.tags.slice(0, 2)}
-              onPress={() => router.push(`/restaurant/${r.id}`)}
-            />
-          ))}
+          {filtered.length === 0 && (query.trim() || active.length > 0) ? (
+            <View style={styles.noMatches}>
+              <Text variant="body" color="textMuted">
+                No matches
+              </Text>
+              <Text
+                variant="link"
+                color="textFaint"
+                onPress={() => {
+                  setQuery('');
+                  setActive([]);
+                }}
+              >
+                Clear filters
+              </Text>
+            </View>
+          ) : (
+            filtered.map((r) => (
+              <RestaurantListItem
+                key={r.id}
+                name={r.name}
+                cuisine={r.cuisine ?? ''}
+                area={r.area ?? ''}
+                city={r.city ?? ''}
+                priceLevel={r.price_level as 1 | 2 | 3 | 4 | null}
+                tags={r.tags.slice(0, 2)}
+                onPress={() => router.push(`/restaurant/${r.id}`)}
+              />
+            ))
+          )}
 
           {query.trim().length >= 2 ? (
             <View style={styles.liveSection}>
@@ -257,6 +275,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: space[4], paddingVertical: space[3], paddingBottom: space[8], gap: space[2] },
   liveSection: { gap: space[2], paddingTop: space[3] },
   liveLoading: { paddingVertical: space[3] },
+  noMatches: { alignItems: 'center', gap: space[2], paddingVertical: space[6] },
 
   mapWrap: { flex: 1, padding: space[4], gap: space[3] },
   map: { flex: 1, backgroundColor: gray[200], borderWidth, borderColor: colors.borderStrong, overflow: 'hidden' },

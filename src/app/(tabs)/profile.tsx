@@ -81,6 +81,7 @@ export default function Profile() {
                 onTogglePrivacy={(next) => setPrivacy.mutate({ status: s.status, isPublic: next })}
                 onOpenRestaurant={openRestaurant}
                 onSeeAll={() => router.push(`/list/${s.status.replace('_', '-')}?variant=list-rows`)}
+                onLogVisit={() => router.push('/log')}
               />
             );
           })}
@@ -143,10 +144,10 @@ export default function Profile() {
               <GalleryGrid
                 photos={gallery.data.map((p) => ({ id: p.id, logId: p.logId, uri: p.uri }))}
                 limit={6}
-                onOpen={(logId) => router.push(`/restaurant/${logId}`)}
+                onOpen={(_logId, index) => router.push(`/photo-viewer?userId=${userId}&index=${index}`)}
               />
               <Text variant="caption" color="textDisabled">
-                Tap any photo → opens that log entry
+                Tap any photo to view it full-screen
               </Text>
               <Text variant="link" color="textFaint" onPress={() => router.push('/list/gallery?variant=gallery')}>
                 See all ({gallery.data.length})

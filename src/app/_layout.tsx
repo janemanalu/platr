@@ -38,9 +38,12 @@ function RootNavigator() {
         <Stack.Screen name="list/[id]" />
         <Stack.Screen name="user/[id]" />
         <Stack.Screen name="find-for-me" />
+        <Stack.Screen name="user-search" />
+        <Stack.Screen name="map-expanded" />
         <Stack.Screen name="post/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="log" options={{ presentation: 'modal' }} />
         <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="photo-viewer" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={!signedIn}>

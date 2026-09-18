@@ -115,7 +115,7 @@ export default function Home() {
           <SectionHeader
             label="Your Food Map"
             actionLabel="Expand"
-            onAction={() => router.push('/discover')}
+            onAction={() => router.push('/map-expanded')}
           />
           <View style={styles.map}>
             <RestaurantMap pins={pins} onPressPin={openRestaurant} />

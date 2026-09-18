@@ -43,6 +43,12 @@
           "photosPermission": "Platr uses your photos so you can attach one to a visit you're logging.",
           "cameraPermission": "Platr uses your camera so you can photograph a dish or place while logging a visit."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Platr uses your location to show how far your logged spots are from you."
+        }
       ]
     ],
     "experiments": {

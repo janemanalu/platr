@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 
@@ -12,6 +13,7 @@ type Mode = 'sign-in' | 'sign-up';
  * root layout, a valid session swaps this out for the tab navigator.
  */
 export default function SignIn() {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -119,6 +121,9 @@ export default function SignIn() {
               setNotice(null);
             }}
           />
+          {mode === 'sign-in' ? (
+            <Button label="Forgot password?" variant="link" onPress={() => router.push('/forgot-password')} />
+          ) : null}
         </View>
       </KeyboardAvoidingView>
     </Screen>

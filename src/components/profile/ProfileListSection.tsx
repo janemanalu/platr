@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { RestaurantRow } from '@/components/restaurant/RestaurantRow';
-import { Card, Text } from '@/components/ui';
+import { Button, Card, Text } from '@/components/ui';
 import { space } from '@/theme';
 
 import { PrivacyToggle } from './PrivacyToggle';
@@ -25,6 +25,8 @@ export type ProfileListSectionProps = {
   onTogglePrivacy?: (next: boolean) => void;
   onOpenRestaurant: (id: string) => void;
   onSeeAll?: () => void;
+  /** Shown alongside "None yet" on this user's own empty sections. */
+  onLogVisit?: () => void;
 };
 
 /** One status section on a profile: label + privacy state, 2-item preview, See all. */
@@ -36,6 +38,7 @@ export function ProfileListSection({
   onTogglePrivacy,
   onOpenRestaurant,
   onSeeAll,
+  onLogVisit,
 }: ProfileListSectionProps) {
   return (
     <View style={styles.wrap}>
@@ -47,9 +50,12 @@ export function ProfileListSection({
       </View>
 
       {items.length === 0 ? (
-        <Text variant="caption" color="textDisabled">
-          None yet
-        </Text>
+        <View style={styles.empty}>
+          <Text variant="caption" color="textDisabled">
+            None yet
+          </Text>
+          {onLogVisit ? <Button label="Log a visit" size="sm" variant="secondary" onPress={onLogVisit} /> : null}
+        </View>
       ) : (
         <Card padding={0}>
           {items.map((r, i) => (
@@ -82,6 +88,7 @@ export function ProfileListSection({
 const styles = StyleSheet.create({
   wrap: { gap: space[2] },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  empty: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });
 
 export default ProfileListSection;
