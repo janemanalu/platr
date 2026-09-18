@@ -164,19 +164,25 @@ Living list of what's done and what's left. Updated as the build progresses.
       pin layout (with an on-screen note) under Expo Go — so it's safe to
       preview now and the real map "just works" once run from a custom dev
       build, no code change needed then.
-- [ ] **Build a custom EAS dev client** to actually see/test the real map —
-      undecided, pending a call on whether it's worth setting up now.
-- [ ] Dev seed still uses invented restaurants, not real ones — mid-flight:
-      researched real, well-reviewed candidates per target neighborhood via
-      Text Search; confirming the specific list before rewriting
-      `0006_dev_seed.sql`.
-- [ ] Two stray real-restaurant rows exist in `restaurants` from ad hoc Places
-      testing this conversation (a "Kato Restaurant" in Los Angeles from
-      earlier Log a Visit testing, and a "Sate Merah Tebet" from verifying
-      Discovery's live search) — neither is part of the intentional seed.
-      Anon/authenticated role can't delete from `restaurants` (no delete RLS
-      policy, by design), so cleanup needs a direct DB connection — bundle it
-      into the seed-rewrite migration.
+- [x] **EAS dev client** — project linked (`@janemanalu/platr`), `eas.json`
+      `development` profile targets the iOS simulator (no Apple Developer
+      account needed), `expo-dev-client` installed, first build kicked off.
+      Once installed on the simulator in place of Expo Go, `RestaurantMap`
+      automatically renders the real interactive map (no code change needed —
+      it only falls back to static pins when it detects Expo Go).
+- [x] **Dev seed now uses real restaurants** — `0006` rebuilt as
+      `20260916100000_reseed_real_restaurants.sql`, applied to the live DB.
+      6 real, verifiable places (Morimoto Jakarta, Estella Indonesian Family
+      Restaurant, Yialos Taverna Menteng, The Nineteen Jakarta, D'Arabicah
+      Restaurant, Nasi Telur Sinchan) with real `google_place_id`/address/
+      lat-lng pulled from Places Text Search, confirmed with the user before
+      finalizing. Added 4 new cuisine tags (Japanese, Greek, Steakhouse,
+      Middle Eastern) the fixed vocabulary didn't have yet. Also cleaned up
+      two stray real-restaurant rows left over from ad hoc Places testing
+      this conversation ("Kato Restaurant" in Los Angeles, "Sate Merah
+      Tebet") — neither was part of any intentional seed. Verified live:
+      6 restaurants, 18 logs, 16 reviews, 12 cuisine tags, Jordan's streak
+      still reads 3.
       beyond the curated/logged set.
 
 ## Fixes
