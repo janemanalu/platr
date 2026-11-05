@@ -1,0 +1,68 @@
+ID,Phase,Area,Item,Status,Where,Owner,Depends on / blocker,Figma frames,Last verified,Source,Notes
+T01,P1 Core loop,Design,Figma file: 53 colored screens (Coral + Lime),Done,Figma,Esther,,jlDu1cXeJZfmi5ocC6Dris,25 Oct,Chat report 25 Oct,Ignore Gray Wireframes (119:132370) and old Share Card frame (87:112066)
+T02,P1 Core loop,Design,"Brand Assets board (icon, adaptive icon, splash, logo files)",Done,Figma,Esther,,104:2,25 Oct,Chat report 25 Oct,Exported into the app by Claude Code
+T03,P1 Core loop,Design,"Share Cards board (chat 4:5, story 9:16)",Done,Figma,Esther,,117:2,25 Oct,Chat report 25 Oct,"4 lanes: restaurant, post, list, decision"
+T04,P1 Core loop,Design,Figma: extend score frames to Food/Vibe/Service,Next,Figma,Esther,,,5 Nov,Verified against Figma,"Optional; code follows the rules, not the frames. Checked frame 85:95932 directly — still Food/Vibe/Tales labels only, no Service yet."
+T05,P1 Core loop,Design,Figma: delete leftover duplicate frames,Later,Figma,Esther,,,,Planned in chat,"9 old share-card frames, 2 old wireframe frames"
+T06,Launch,Design,Dark theme design,Later,Figma,Esther,,,,Planned in chat,Dark/System buttons are dead buttons for now
+T07,P1 Core loop,Backend,Supabase project restored and reachable,Done,Supabase / repo,Esther,,,25 Oct,Chat report 25 Oct,Free projects pause after ~1 week idle; check dashboard
+T08,P1 Core loop,Backend,18 migrations applied and committed (commit 5b30c7c),Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,Backup: ~/Developer/platr-backups/platr-20261024-1707
+T09,P1 Core loop,Backend,"Scores: Platr = 0.50 Food + 0.25 Service + 0.25 Vibe, shrinkage, min 3 raters",Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,Weights are draft named constants
+T10,P1 Core loop,Backend,"Privacy rules: per-list toggles, feed follows list privacy",Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,Enforced in the database
+T11,P1 Core loop,Backend,"Tags: 6 categories, max 5 per visit, retired old tags",Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,
+T12,P1 Core loop,Backend,"Media table (up to 6, width/height, video-ready)",Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,
+T13,P3 Groups & sharing,Backend,"Stories tables (logged + freeform, 24h expiry)",Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,Screens not built
+T14,P3 Groups & sharing,Backend,Notifications + push_tokens tables,Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,Screens and push not built
+T15,P3 Groups & sharing,Backend,"Decide Together tables and functions (counts only, dietary rules)",Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,Tested on live DB in rolled-back transaction
+T16,P1 Core loop,Backend,Dev seed with Service ratings,Done,Supabase / repo,Claude Code,,,25 Oct,Chat report 25 Oct,@platr.dev demo users
+T17,P2 Friend test,Backend,Migration: dev seed dietary tags (demo claims),In progress,Supabase / repo,Esther,Fresh dump first,,25 Oct,Chat report 25 Oct,"20261025090000; approved, not confirmed run"
+T18,P2 Friend test,Backend,Migration: media width/height required,In progress,Supabase / repo,Esther,Fresh dump first,,25 Oct,Chat report 25 Oct,"20261025090100; approved, not confirmed run"
+T19,P1 Core loop,Backend,Drop review_photos table,Blocked,Supabase / repo,Esther,Say 'run drop' after Log a Visit approved,,25 Oct,Chat report 25 Oct,Do not run yet
+T20,P1 Core loop,Backend,Photo cleanup Edge Function (empty deletion queue),Next,Supabase / repo,Claude Code,,,5 Nov,Verified against repo,"Described in step 3. storage_cleanup_queue table + trigger already exist (20261013090500_media.sql, queues a row on media delete); the Edge Function that actually empties it is not written — no supabase/functions dir in the repo."
+T21,P2 Friend test,Backend,"Username sign-in Edge Function (rate-limited, never returns email)",Next,Supabase / repo,Claude Code,Auth step,,5 Nov,Verified against repo,"Not built — confirmed via 20261013090600_profiles_settings_search.sql's own comment: 'no function ever returns an email'. username_available() exists but that's sign-up only."
+T22,P3 Groups & sharing,Backend,"Describe it (AI) server function, rate-limited, tag list only",Later,Supabase / repo,Claude Code,Find for Me v2,,5 Nov,Verified against repo,"API key in secrets; never infer diets. No AI integration found in repo — only generic Supabase config.toml boilerplate mentions OpenAI (unrelated, Studio AI assistant)."
+T23,P2 Friend test,Backend,Remove or hide @platr.dev demo data before real testers,Next,Supabase / repo,Both,,,,Planned in chat,Also: halal/dietary seed tags are demo claims
+T24,P1 Core loop,App,"Theme tokens, fonts (Barriecito, Inclusive Sans), base components, tab bar",Needs review,Repo (src/),Claude Code,Look on device,,25 Oct,Chat report 25 Oct,"Built, typecheck passes, NOT committed, not seen on a device"
+T25,P1 Core loop,App,App icon and splash exported from Figma,Needs review,Repo (src/),Claude Code,New dev build,104:2,25 Oct,Chat report 25 Oct,Needs eas dev build to appear
+T26,P1 Core loop,App,"Log a Visit: 3 sliders, Spice, tags, text-post, share to story",Needs review,Repo (src/),Claude Code,Look on device,"80:80013, 80:81160, 80:82308",25 Oct,Chat report 25 Oct,Live DB test passed; NOT committed; no one has seen it
+T27,P1 Core loop,App,"Photo upload (MediaUploader/MediaView, up to 6)",Needs review,Repo (src/),Claude Code,Look on device,,25 Oct,Chat report 25 Oct,Live DB test passed
+T28,P1 Core loop,App,Image resizing before upload,Next,Repo (src/),Claude Code,"New native module, dev build",,25 Oct,Chat report 25 Oct,
+T29,P1 Core loop,App,iOS dev build (simulator first: npx expo run:ios),Next,Repo (src/),Esther,Run 'npx eas-cli whoami' first,,25 Oct,Chat report 25 Oct,Confirm EAS account janemanalu is yours; real iPhone needs paid Apple account
+T30,P1 Core loop,App,Score display + restaurant cards with 3 scores (step 4),Next,Repo (src/),Claude Code,Theme approved,85:95932,5 Nov,Verified against repo,"Detail, All Reviews, Discover, Home, Map, List Detail. src/lib/scores.ts#formatScores() exists (uncommitted) but is only wired into TextPostPreview so far — not on any restaurant card, list row, or map yet."
+T31,P1 Core loop,App,"Restaurant Detail restyle (hero, score card, tag groups)",Next,Repo (src/),Claude Code,Step 4,,,Chat report 25 Oct,Frames #1/#2 are one screen
+T32,P1 Core loop,App,"Home restyle (bell, streak chip, photo cards)",Next,Repo (src/),Claude Code,Step 4,,,Chat report 25 Oct,
+T33,P1 Core loop,App,"Discover restyle (filter chips, rows)",Next,Repo (src/),Claude Code,Step 4,80:74818,,Chat report 25 Oct,
+T34,P2 Friend test,App,Expanded Food Map restyle,Next,Repo (src/),Claude Code,,85:97633,,Chat report 25 Oct,Real map SDK is Later
+T35,P2 Friend test,App,"Auth: Opening, Sign Up, Sign In, Google/Apple, Complete Profile, Forgot",Next,Repo (src/),Claude Code,Google/Apple console setup (Esther),"79:62901, 80:65243, 80:66009, 85:96992",,Chat report 25 Oct,Remove EXPO_PUBLIC_DEV_SKIP_AUTH before release
+T36,P2 Friend test,App,"Settings: Main, Edit Profile, Privacy Defaults, Notifications, Display, About",Next,Repo (src/),Claude Code,Auth,80:66745,,Chat report 25 Oct,Main currently uses fake data
+T37,P2 Friend test,App,"Social feed: stories bubbles, text/score tiles, Decide button",Next,Repo (src/),Claude Code,Step 4,80:83457,,Chat report 25 Oct,
+T38,P2 Friend test,App,"Posts view, Profile Posts (scrollable own feed)",Next,Repo (src/),Claude Code,Feed,"87:109670, 85:98309",,Chat report 25 Oct,
+T39,P2 Friend test,App,"Profile restyle, Create new list (saves), List Detail",Next,Repo (src/),Claude Code,,"85:95121, 87:108440",,Chat report 25 Oct,
+T40,P2 Friend test,App,"Other User's Profile, Find Friends (suggested, mutual)",Next,Repo (src/),Claude Code,,"82:89805, 82:88794",,Chat report 25 Oct,
+T41,P2 Friend test,App,"Stories screens: viewer, add story, create (pick/compose)",Next,Repo (src/),Claude Code,Feed,,,Chat report 25 Oct,Followers-only for freeform
+T42,P3 Groups & sharing,App,Notifications inbox and bell,Next,Repo (src/),Claude Code,,80:72864,,Chat report 25 Oct,
+T43,P3 Groups & sharing,App,Decide Together screens (9 frames),Next,Repo (src/),Claude Code,Notifications,82:87969,,Chat report 25 Oct,"Counts only, never whose wishlist"
+T44,P3 Groups & sharing,App,"Find for Me v2 (4 questions, multi-area, hero + runners-up)",Next,Repo (src/),Claude Code,,,,Chat report 25 Oct,
+T45,P3 Groups & sharing,App,Share cards (plain share-sheet image first),Later,Repo (src/),Claude Code,,117:2,5 Nov,Verified against repo,"1080x1350 chat, 1080x1920 story. No share-card rendering code found in repo."
+T46,P3 Groups & sharing,App,Add from Share (one place at a time),Later,Repo (src/),Claude Code,Dev build,,5 Nov,Verified against repo,Nothing found in repo yet.
+T47,P3 Groups & sharing,App,Direct Instagram Stories sharing,Later,Repo (src/),Claude Code,Meta app ID + dev build,,5 Nov,Verified against repo,Nothing found in repo yet.
+T48,P3 Groups & sharing,App,Real map SDK + live Google Places search in Discover,Done,Repo (src/),Claude Code,,,5 Nov,Verified against repo,"Was Later; actually built and committed (9db82e2, 18 Sep) — react-native-maps (RestaurantMap component) + searchRestaurantsText live Places search wired into Discover's 'More from Google' section. Dev-client render verified on-device 18 Sep; code confirmed still present and committed now. Real map needs the custom dev client, not Expo Go — recheck a current dev build still has it before relying on this for a demo."
+T49,P3 Groups & sharing,App,Real Jakarta seed data (real spots),Done,Repo (src/),Both,,,5 Nov,Verified against repo,"Was Later; actually done since 16 Sep — 20260916100000_reseed_real_restaurants.sql (committed 279454d) seeded 6 real, verifiable Jakarta restaurants (Morimoto Jakarta, Estella Indonesian Family Restaurant, Yialos Taverna Menteng, The Nineteen Jakarta, D'Arabicah Restaurant, Nasi Telur Sinchan), with real google_place_id/address/lat-lng. Corroborated by AGENTS.md's current Demo data section, which still names these same six. Could not re-verify live in the DB — project was unreachable (NXDOMAIN) during this check."
+T50,P3 Groups & sharing,App,Push notifications,Later,Repo (src/),Claude Code,Dev build,,5 Nov,Verified against repo,No expo-notifications dependency or push code found.
+T51,P3 Groups & sharing,App,Share-link web page,Later,Repo (src/),Claude Code,,,5 Nov,Verified against repo,Nothing found in repo.
+T52,Launch,App,Video posts and stories,Later,Repo (src/),Claude Code,,,5 Nov,Verified against repo,"Photos only for now; schema is ready. No video-specific code found."
+T53,Launch,App,Dark theme,Later,Repo (src/),Claude Code,,,5 Nov,Verified against repo,No dark-mode/color-scheme code found in src/theme.
+T54,Launch,Launch,Block user,Next,Stores,Claude Code,,,,Chat report 25 Oct,Apple 1.2
+T55,Launch,Launch,Report content with timely response,Next,Stores,Claude Code,,,,Chat report 25 Oct,Reports table exists; screens/process missing
+T56,Launch,Launch,Objectionable-words filter,Next,Stores,Claude Code,,,,Chat report 25 Oct,Apple 1.2
+T57,Launch,Launch,"In-app account deletion (removes content, revokes Apple tokens)",Next,Stores,Claude Code,,,,Chat report 25 Oct,Apple 5.1.1(v)
+T58,Launch,Launch,Support contact + privacy policy URL,Next,Stores,Esther,,,,Chat report 25 Oct,
+T59,Launch,Launch,Apple Developer account + TestFlight,Next,Stores,Esther,,,,Planned in chat,Needed for real iPhone / testers
+T60,Launch,Launch,"Google Play closed test (12 testers, 14 days; verify current rule)",Later,Stores,Esther,,,,Chat report 25 Oct,Org account avoids this but needs D-U-N-S
+T61,Launch,Launch,Ask co-founder which part of deployment worries him,Next,Stores,Esther,,,,Planned in chat,"Store approval, builds, or backend?"
+T62,Business,Business,"Business plan doc draft (Parts A, B, Appendix)",In progress,Docs,Both,,,,Chat report 25 Oct,Claude Docs artifact
+T63,Business,Business,Both founders fill in Part B,Next,Docs,Both,,,,Planned in chat,
+T64,Business,Business,Market research with cited figures,Next,Docs,Both,,,,Planned in chat,
+T65,Business,Business,Verify competitor facts (especially Beli),Next,Docs,Both,,,,Planned in chat,
+T66,Business,Business,Choose first Jakarta neighborhood,Next,Docs,Both,,,,Planned in chat,Open decision
+T67,Business,Business,Choose first revenue idea,Next,Docs,Both,,,,Planned in chat,Open decision
